@@ -14,13 +14,16 @@ const (
 )
 
 type SavingsAccount struct {
-	SavingsAccountID  string                        `json:"savingsaccount_id"`
-	ProductType       savingsproduct.SavingsProduct `json:"product_type"`
-	SavingsAmount     float64                       `json:"savings_amount"`
-	InterestAmount    float64                       `json:"actual_interest_amount"`
-	StartTime         string                        `json:"start_time"`
-	EndTime           string                        `json:"end_time"`
-	SavingsPeriod     int64                         `json:"savings_period"`
-	SettleInstruction SettleType                    `json:"settle_instruction"`
-	Owner             customer.Customer             `json:"customer"`
+	SavingsAccountID    string                        `json:"savingsaccount_id"`
+	ProductType         savingsproduct.SavingsProduct `json:"product_type"`
+	SavingsAmount       float64                       `json:"savings_amount"`
+	InterestAmount      float64                       `json:"actual_interest_amount"`
+	StartTime           string                        `json:"start_time"`
+	EndTime             string                        `json:"end_time"`
+	SavingsPeriod       int64                         `json:"savings_period"`
+	SettleInstruction   SettleType                    `json:"settle_instruction"`
+	Owner               customer.Customer             `json:"customer"`
+	InterestRate        float64                       `json:"interest_rate"`
+	BlockchainConfirmed bool                          `json:"blockchain_confirmed"`
+	Currency            string                        `json:"currency"`
 }

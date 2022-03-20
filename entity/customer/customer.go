@@ -6,7 +6,8 @@ import (
 )
 
 type Customer struct {
-	CustomerID      int64                           `json:"customer_id"`
+	CustomerType    string                          `json:"customer_type"`
+	CustomerID      string                          `json:"customer_id"`
 	CustomerName    string                          `json:"customer_name"`
 	CustomerPhone   string                          `json:"customer_phone"`
 	BankAccounts    []bankaccount.BankAccount       `json:"bank_accounts"`
