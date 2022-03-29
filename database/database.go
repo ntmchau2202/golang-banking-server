@@ -60,6 +60,21 @@ func initConfigs() (err error) {
 	return
 }
 
+func (c DatabaseConnection) GetCustomerLoginInfo(customerPhone string) (pwd string, err error) {
+	sql := "SELECT * FROM logindetails WHERE customer_phone=$phone"
+	stm := c.dbConn.Prep(sql)
+	stm.SetText("$phone", customerPhone)
+	for {
+		if hasRow, err := stm.Step(); err != nil {
+			return pwd, err
+		} else if !hasRow {
+			break
+		}
+		pwd = stm.GetText("password")
+	}
+	return
+}
+
 func (c DatabaseConnection) GetCustomerByPhone(phone string) (cust customer.Customer, err error) {
 	sql := "SELECT * FROM customer WHERE customer_phone=$phone"
 	stm := c.dbConn.Prep(sql)
@@ -75,30 +90,6 @@ func (c DatabaseConnection) GetCustomerByPhone(phone string) (cust customer.Cust
 		cust.CustomerPhone = stm.GetText("customer_phone")
 		cust.CustomerID = stm.GetText("customer_id")
 		cust.CustomerName = stm.GetText("customer_name")
-	}
-	return
-}
-
-func (c DatabaseConnection) GetBankAccountOfCustomer(customerPhone string) (listBankAccount []bankaccount.BankAccount, err error) {
-	customer, err := c.GetCustomerByPhone(customerPhone)
-	if err != nil {
-		return
-	}
-
-	sql := "SELECT * FROM customer_bankaccount WHERE customer_id=$id"
-	stm := c.dbConn.Prep(sql)
-	stm.SetText("$id", customer.CustomerID)
-	for {
-		if hasRow, err := stm.Step(); err != nil {
-			return listBankAccount, err
-		} else if !hasRow {
-			break
-		}
-		listBankAccount = append(listBankAccount, bankaccount.BankAccount{
-			Owner:         customer,
-			BankAccountID: stm.GetText("bankaccount_id"),
-			Balance:       stm.GetFloat("bankaccount_balance"),
-		})
 	}
 	return
 }
@@ -119,6 +110,30 @@ func (c DatabaseConnection) GetSavingsAccountOfCustomer(customerPhone string) (l
 			break
 		}
 		// fetching..
+	}
+	return
+}
+
+func (c DatabaseConnection) GetBankAccountOfCustomer(customerPhone string) (listBankAccount []bankaccount.BankAccount, err error) {
+	customer, err := c.GetCustomerByPhone(customerPhone)
+	if err != nil {
+		return
+	}
+
+	sql := "SELECT * FROM customer_bankaccount WHERE customer_id=$id"
+	stm := c.dbConn.Prep(sql)
+	stm.SetText("$id", customer.CustomerID)
+	for {
+		if hasRow, err := stm.Step(); err != nil {
+			return listBankAccount, err
+		} else if !hasRow {
+			break
+		}
+		listBankAccount = append(listBankAccount, bankaccount.BankAccount{
+			OwnerID:       customer.CustomerID,
+			BankAccountID: stm.GetText("bankaccount_id"),
+			Balance:       stm.GetFloat("bankaccount_balance"),
+		})
 	}
 	return
 }
@@ -172,21 +187,6 @@ func (c DatabaseConnection) GetSavingsProductDetails(productName string) (produc
 		product.ProductName = stm.GetText("product_name")
 		product.ProductID = stm.GetText("product_id")
 		product.ProductAlias = stm.GetText("product_alias")
-	}
-	return
-}
-
-func (c DatabaseConnection) GetCustomerLoginInfo(customerPhone string) (pwd string, err error) {
-	sql := "SELECT * FROM logindetails WHERE customer_phone=$phone"
-	stm := c.dbConn.Prep(sql)
-	stm.SetText("$phone", customerPhone)
-	for {
-		if hasRow, err := stm.Step(); err != nil {
-			return pwd, err
-		} else if !hasRow {
-			break
-		}
-		pwd = stm.GetText("password")
 	}
 	return
 }

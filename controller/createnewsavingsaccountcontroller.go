@@ -1,8 +1,7 @@
 package controller
 
 import (
-	"bankserver/entity/customer"
-	"bankserver/entity/savingsproduct"
+	"bankserver/entity/factory"
 	"errors"
 	"strconv"
 	"sync"
@@ -26,11 +25,11 @@ func (c *CreateNewSavingsAccountController) CreateNewAccount(
 	estimatedInterestAmount float64,
 	settleInstruction string,
 ) (savingsAccountIDStr string, err error) {
-	savingsProduct, err := savingsproduct.GetNewSavingsProductFactory().GetSavingsProductByName(savingType)
+	savingsProduct, err := factory.GetNewSavingsProductFactory().GetSavingsProductByName(savingType)
 	if err != nil {
 		return "", errors.New("an error occurred when fetching product information")
 	}
-	cust, err := customer.NewCustomerFactory().GetCustomerByPhone(customerPhone)
+	cust, err := factory.NewCustomerFactory().GetCustomerByPhone(customerPhone)
 	if err != nil {
 		return "", errors.New("an error occurred when fetching customer information")
 	}
@@ -40,6 +39,7 @@ func (c *CreateNewSavingsAccountController) CreateNewAccount(
 	savingsAccountIDStr = strconv.FormatInt(int64(savingsAccountID), 10)
 	mtx.Unlock()
 
+	// TODO: get time
 	// TODO: save to database
 
 	return savingsAccountIDStr, nil

@@ -1,7 +1,6 @@
 package savingsaccount
 
 import (
-	"bankserver/entity/customer"
 	"bankserver/entity/savingsproduct"
 )
 
@@ -22,7 +21,7 @@ type SavingsAccount struct {
 	EndTime             string                        `json:"end_time"`
 	SavingsPeriod       int64                         `json:"savings_period"`
 	SettleInstruction   SettleType                    `json:"settle_instruction"`
-	Owner               customer.Customer             `json:"customer"`
+	OwnerID             string                        `json:"customer_id"`
 	InterestRate        float64                       `json:"interest_rate"`
 	BlockchainConfirmed bool                          `json:"blockchain_confirmed"`
 	Currency            string                        `json:"currency"`

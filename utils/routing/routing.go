@@ -26,7 +26,7 @@ func SetupLoginAPI(router *gin.Engine) {
 
 func SetupSettleSavingsAccount(router *gin.Engine) {
 	router.POST("/v1/savings/settle", func(ctx *gin.Context) {
-		api.SettleSavingsAccout(ctx)
+		api.SettleSavingsAccount(ctx)
 
 	})
 }

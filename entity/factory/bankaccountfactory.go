@@ -1,7 +1,8 @@
-package bankaccount
+package factory
 
 import (
 	"bankserver/database"
+	"bankserver/entity/bankaccount"
 	"errors"
 )
 
@@ -12,7 +13,7 @@ func NewBankAccountFactory() *BankAccountFactory {
 	return &BankAccountFactory{}
 }
 
-func GetBankAccountsOfCustomer(phone string) (listBankAccount []BankAccount, err error) {
+func GetBankAccountsOfCustomer(phone string) (listBankAccount []bankaccount.BankAccount, err error) {
 	db, err := database.GetDBConnection()
 	if err != nil {
 		return listBankAccount, errors.New("unexpected error when getting customer information")
@@ -21,6 +22,6 @@ func GetBankAccountsOfCustomer(phone string) (listBankAccount []BankAccount, err
 	return db.GetBankAccountOfCustomer(phone)
 }
 
-func GetBankAccountByID(bankAccID string) (acc BankAccount, err error) {
+func GetBankAccountByID(bankAccID string) (acc bankaccount.BankAccount, err error) {
 	return
 }
