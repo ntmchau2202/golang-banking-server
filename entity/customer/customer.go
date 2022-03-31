@@ -11,3 +11,5 @@ type Customer struct {
 	CustomerPhone string                    `json:"customer_phone"`
 	BankAccounts  []bankaccount.BankAccount `json:"bank_accounts"`
 }
+
+var CustomerType []string

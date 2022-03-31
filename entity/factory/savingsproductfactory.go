@@ -9,26 +9,23 @@ import (
 type savingsProductFactory struct {
 }
 
-var SavingsProductType map[string]savingsproduct.SavingsProduct
-var SavingsProductTypeName []string
-
 func GetNewSavingsProductFactory() *savingsProductFactory {
 	return &savingsProductFactory{}
 }
 
 func isProductTypeExist(name string) bool {
-	_, exist := SavingsProductType[name]
+	_, exist := savingsproduct.SavingsProductType[name]
 	return exist
 }
 
 func (f savingsProductFactory) PutProductType(name string, product savingsproduct.SavingsProduct) {
 	if !isProductTypeExist(name) {
-		SavingsProductType[name] = product
+		savingsproduct.SavingsProductType[name] = product
 	}
 }
 
 func (f savingsProductFactory) FetchAllSavingsProduct() (err error) {
-	for _, item := range SavingsProductTypeName {
+	for _, item := range savingsproduct.SavingsProductTypeName {
 		db, err := database.GetDBConnection()
 		if err != nil {
 			return err
@@ -45,7 +42,7 @@ func (f savingsProductFactory) FetchAllSavingsProduct() (err error) {
 }
 
 func (f savingsProductFactory) GetSavingsProductByName(name string) (product savingsproduct.SavingsProduct, err error) {
-	if product, exist := SavingsProductType[name]; exist {
+	if product, exist := savingsproduct.SavingsProductType[name]; exist {
 		return product, nil
 	} else {
 		return product, errors.New("product not found")

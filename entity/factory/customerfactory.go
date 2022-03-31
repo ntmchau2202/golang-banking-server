@@ -8,14 +8,12 @@ import (
 
 type CustomerFactory struct{}
 
-var CustomerType []string
-
 func NewCustomerFactory() *CustomerFactory {
 	return &CustomerFactory{}
 }
 
 func isCustomerTypeExist(customerType string) bool {
-	for _, name := range CustomerType {
+	for _, name := range customer.CustomerType {
 		if strings.Compare(customerType, name) == 0 {
 			return true
 		}
@@ -23,13 +21,13 @@ func isCustomerTypeExist(customerType string) bool {
 	return false
 }
 
-func (f CustomerFactory) PutCustomerType(name string) {
-	for _, name := range CustomerType {
+func (f CustomerFactory) putCustomerType(name string) {
+	for _, name := range customer.CustomerType {
 		if isCustomerTypeExist(name) {
 			return
 		}
 	}
-	CustomerType = append(CustomerType, name)
+	customer.CustomerType = append(customer.CustomerType, name)
 }
 
 func (f CustomerFactory) GetCustomerByPhone(phone string) (cust customer.Customer, err error) {

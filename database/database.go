@@ -5,6 +5,7 @@ import (
 	"bankserver/entity/customer"
 	"bankserver/entity/savingsaccount"
 	"bankserver/entity/savingsproduct"
+	"errors"
 	"strings"
 	"sync"
 
@@ -52,9 +53,9 @@ func initConfigs() (err error) {
 		field := stm.GetText("field")
 		value := stm.GetText("value")
 		if strings.Compare(field, "customer_type") == 0 {
-			// call customer factory to put customer type here
+			customer.CustomerType = append(customer.CustomerType, value)
 		} else if strings.Compare(field, "savings_product_type") == 0 {
-			// call savings product factory to put savings product type here
+			savingsproduct.SavingsProductTypeName = append(savingsproduct.SavingsProductTypeName, value)
 		}
 	}
 	return
@@ -79,45 +80,29 @@ func (c DatabaseConnection) GetCustomerByPhone(phone string) (cust customer.Cust
 	sql := "SELECT * FROM customer WHERE customer_phone=$phone"
 	stm := c.dbConn.Prep(sql)
 	stm.SetText("$phone", phone)
-	for {
-		if hasRow, err := stm.Step(); err != nil {
-			return cust, err
-		} else if !hasRow {
-			break
-		}
-		// create customer instance here
-		cust.CustomerType = stm.GetText("customer_type")
-		cust.CustomerPhone = stm.GetText("customer_phone")
-		cust.CustomerID = stm.GetText("customer_id")
-		cust.CustomerName = stm.GetText("customer_name")
+	if hasRow, err := stm.Step(); err != nil {
+		return cust, err
+	} else if !hasRow {
+		return cust, errors.New("no customer found")
 	}
-	return
-}
+	// create customer instance here
+	cust.CustomerType = stm.GetText("customer_type")
+	cust.CustomerPhone = stm.GetText("customer_phone")
+	cust.CustomerID = stm.GetText("customer_id")
+	cust.CustomerName = stm.GetText("customer_name")
 
-func (c DatabaseConnection) GetSavingsAccountOfCustomer(customerPhone string) (listSavingsAccount []savingsaccount.SavingsAccount, err error) {
-	customer, err := c.GetCustomerByPhone(customerPhone)
+	bankAccounts, err := c.GetBankAccountOfCustomer(cust.CustomerPhone)
 	if err != nil {
-		return
+		return cust, err
 	}
-
-	sql := "SELECT * FROM customer_savingsaccount WHERE customer_id=$id"
-	stm := c.dbConn.Prep(sql)
-	stm.SetText("$id", customer.CustomerID)
-	for {
-		if hasRow, err := stm.Step(); err != nil {
-			return listSavingsAccount, err
-		} else if !hasRow {
-			break
-		}
-		// fetching..
-	}
-	return
+	cust.BankAccounts = append(cust.BankAccounts, bankAccounts...)
+	return cust, nil
 }
 
 func (c DatabaseConnection) GetBankAccountOfCustomer(customerPhone string) (listBankAccount []bankaccount.BankAccount, err error) {
 	customer, err := c.GetCustomerByPhone(customerPhone)
 	if err != nil {
-		return
+		return listBankAccount, errors.New("no such customer with given phone number")
 	}
 
 	sql := "SELECT * FROM customer_bankaccount WHERE customer_id=$id"
@@ -129,11 +114,51 @@ func (c DatabaseConnection) GetBankAccountOfCustomer(customerPhone string) (list
 		} else if !hasRow {
 			break
 		}
-		listBankAccount = append(listBankAccount, bankaccount.BankAccount{
+		acc := bankaccount.BankAccount{
 			OwnerID:       customer.CustomerID,
 			BankAccountID: stm.GetText("bankaccount_id"),
 			Balance:       stm.GetFloat("bankaccount_balance"),
-		})
+		}
+
+		// query savings account
+		listSavingsAccount, err := c.GetSavingsAccountOfBankAccount(acc.BankAccountID)
+		if err != nil {
+			return listBankAccount, err
+		}
+		acc.ListSavingsAccount = append(acc.ListSavingsAccount, listSavingsAccount...)
+		listBankAccount = append(listBankAccount, acc)
+
+	}
+	return
+}
+
+// TODO: recheck table and fields of this function
+func (c DatabaseConnection) GetSavingsAccountOfBankAccount(bankAccountID string) (listSavingsAccount []savingsaccount.SavingsAccount, err error) {
+	sql := "SELECT * FROM customer_bankaccount WHERE bankaccount_id=$id"
+	stm := c.dbConn.Prep(sql)
+	stm.SetText("$id", bankAccountID)
+	for {
+		if hasRow, err := stm.Step(); err != nil {
+			return listSavingsAccount, err
+		} else if !hasRow {
+			break
+		}
+		savingsAcc := savingsaccount.SavingsAccount{
+			SavingsAccountID:    stm.GetText("savingsaccount_id"),
+			ProductType:         savingsproduct.SavingsProductType[stm.GetText("product_type")],
+			BankAccountID:       bankAccountID,
+			SavingsAmount:       stm.GetFloat("amount"),
+			InterestAmount:      stm.GetFloat("insterest_amount"),
+			StartTime:           stm.GetText("open_time"),
+			EndTime:             stm.GetText("settle_time"),
+			SavingsPeriod:       stm.GetInt64("savings_period"),
+			SettleInstruction:   savingsaccount.SettleType(stm.GetText("settle_instruction")),
+			OwnerID:             stm.GetText("ownder_id"),
+			InterestRate:        stm.GetFloat("interest_rate"),
+			BlockchainConfirmed: stm.GetBool("blockchain_confirmed"),
+			Currency:            stm.GetText("currency"),
+		}
+		listSavingsAccount = append(listSavingsAccount, savingsAcc)
 	}
 	return
 }
@@ -160,6 +185,26 @@ func (c DatabaseConnection) GetSavingsAccountByID(savingsID string) (acc savings
 		acc.Currency = stm.GetText("currency")
 		acc.SettleInstruction = savingsaccount.SettleType(stm.GetText("settle_instruction"))
 	}
+	return
+}
+
+func (c DatabaseConnection) GetBankAccountByID(bankAccID string) (bankAcc bankaccount.BankAccount, err error) {
+	sql := "SELECT * FROM bankaccount WHERE bankaccount_id=$id"
+	stm := c.dbConn.Prep(sql)
+	stm.SetText("$id", bankAccID)
+	if hasRow, err := stm.Step(); err != nil {
+		return bankAcc, err
+	} else if !hasRow {
+		return bankAcc, errors.New("no bank account with id given")
+	}
+
+	bankAcc.Balance = stm.GetFloat("balance")
+	bankAcc.BankAccountID = bankAccID
+	listSavingsAccount, err := c.GetSavingsAccountOfBankAccount(bankAccID)
+	if err != nil {
+		return bankAcc, err
+	}
+	bankAcc.ListSavingsAccount = append(bankAcc.ListSavingsAccount, listSavingsAccount...)
 	return
 }
 

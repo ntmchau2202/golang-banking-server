@@ -15,6 +15,7 @@ const (
 type SavingsAccount struct {
 	SavingsAccountID    string                        `json:"savingsaccount_id"`
 	ProductType         savingsproduct.SavingsProduct `json:"product_type"`
+	BankAccountID       string                        `json:"bankaccount_id"`
 	SavingsAmount       float64                       `json:"savings_amount"`
 	InterestAmount      float64                       `json:"actual_interest_amount"`
 	StartTime           string                        `json:"start_time"`

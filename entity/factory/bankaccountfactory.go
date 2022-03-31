@@ -23,5 +23,10 @@ func GetBankAccountsOfCustomer(phone string) (listBankAccount []bankaccount.Bank
 }
 
 func GetBankAccountByID(bankAccID string) (acc bankaccount.BankAccount, err error) {
-	return
+	db, err := database.GetDBConnection()
+	if err != nil {
+		return
+	}
+
+	return db.GetBankAccountByID(bankAccID)
 }
