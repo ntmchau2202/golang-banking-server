@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bankserver/entity/bankaccount"
+	"bankserver/entity/factory"
 )
 
 type FetchAccInfController struct {
@@ -16,9 +17,13 @@ func FetchAccInf(
 	bankAccountID ...string,
 ) (listBankAcc []bankaccount.BankAccount, err error) {
 	if len(bankAccountID) != 0 {
-		// for _, acc := range bankAccountID {
-
-		// }
+		for _, acc := range bankAccountID {
+			bankAcc, err := factory.NewBankAccountFactory().GetBankAccountByID(acc)
+			if err != nil {
+				continue
+			}
+			listBankAcc = append(listBankAcc, bankAcc)
+		}
 	}
 	return
 }

@@ -13,7 +13,7 @@ func NewBankAccountFactory() *BankAccountFactory {
 	return &BankAccountFactory{}
 }
 
-func GetBankAccountsOfCustomer(phone string) (listBankAccount []bankaccount.BankAccount, err error) {
+func (c *BankAccountFactory) GetBankAccountsOfCustomer(phone string) (listBankAccount []bankaccount.BankAccount, err error) {
 	db, err := database.GetDBConnection()
 	if err != nil {
 		return listBankAccount, errors.New("unexpected error when getting customer information")
@@ -22,7 +22,7 @@ func GetBankAccountsOfCustomer(phone string) (listBankAccount []bankaccount.Bank
 	return db.GetBankAccountOfCustomer(phone)
 }
 
-func GetBankAccountByID(bankAccID string) (acc bankaccount.BankAccount, err error) {
+func (c *BankAccountFactory) GetBankAccountByID(bankAccID string) (acc bankaccount.BankAccount, err error) {
 	db, err := database.GetDBConnection()
 	if err != nil {
 		return

@@ -37,7 +37,7 @@ func (f CustomerFactory) GetCustomerByPhone(phone string) (cust customer.Custome
 	}
 
 	cust, err = db.GetCustomerByPhone(phone)
-	bankAccount, err := GetBankAccountsOfCustomer(cust.CustomerID)
+	bankAccount, err := db.GetBankAccountOfCustomer(cust.CustomerPhone)
 	if err != nil {
 		return cust, err
 	}

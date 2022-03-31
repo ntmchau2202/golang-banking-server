@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bankserver/entity/factory"
+	"bankserver/utils"
 	"errors"
 	"strconv"
 	"sync"
@@ -40,6 +41,13 @@ func (c *CreateNewSavingsAccountController) CreateNewAccount(
 	mtx.Unlock()
 
 	// TODO: get time
+	curTime := utils.GetCurrentTimeFormatted()
+
+	// TODO: connect to the blockchain to save transaction
+	// If successfull, update true to database
+	// else, update pending to database
+	// TODO: create a worker to automatically checks for transaction status on blockchain
+
 	// TODO: save to database
 
 	return savingsAccountIDStr, nil
