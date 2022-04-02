@@ -9,18 +9,20 @@ const (
 )
 
 type SavingsAccount struct {
-	SavingsAccountID  string     `json:"savingsaccount_id"`
-	ProductTypeName   string     `json:"product_type"`
-	BankAccountID     string     `json:"bankaccount_id"`
-	SavingsAmount     float64    `json:"savings_amount"`
-	InterestAmount    float64    `json:"actual_interest_amount"`
-	StartTime         string     `json:"start_time"`
-	EndTime           string     `json:"end_time"`
-	SavingsPeriod     int64      `json:"savings_period"`
-	SettleInstruction SettleType `json:"settle_instruction"`
-	OwnerID           string     `json:"customer_id"`
-	InterestRate      float64    `json:"interest_rate"`
-	CreationConfirmed bool       `json:"creation_confirmed"`
-	SettleConfirmed   bool       `json:"settle_confirmed"`
-	Currency          string     `json:"currency"`
+	SavingsAccountID     string     `json:"savingsaccount_id"`
+	ProductTypeName      string     `json:"product_type"`
+	BankAccountID        string     `json:"bankaccount_id"`
+	SavingsAmount        float64    `json:"savings_amount"`
+	InterestAmount       float64    `json:"interest_amount"`
+	ActualInterestAmount float64    `json:"actual_interest_amount"`
+	StartTime            string     `json:"start_time"`
+	EndTime              string     `json:"end_time"`
+	SavingsPeriod        int64      `json:"savings_period"`
+	SettleInstruction    SettleType `json:"settle_instruction"`
+	OwnerPhone           string     `json:"customer_phone"`
+	OwnerID              string     `json:"customer_id"`
+	InterestRate         float64    `json:"interest_rate"`
+	CreationConfirmed    bool       `json:"creation_confirmed"`
+	SettleConfirmed      bool       `json:"settle_confirmed"`
+	Currency             string     `json:"currency"`
 }
