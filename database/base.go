@@ -12,7 +12,7 @@ import (
 
 // singleton
 const (
-	dbPath string = ""
+	dbPath string = "../../resource/bankDB.db"
 )
 
 type DatabaseConnection struct {

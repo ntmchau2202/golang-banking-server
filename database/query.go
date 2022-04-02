@@ -6,23 +6,24 @@ import (
 	"bankserver/entity/savingsaccount"
 	"bankserver/entity/savingsproduct"
 	"errors"
+	"fmt"
 )
 
+// OK
 func (c DatabaseConnection) GetCustomerLoginInfo(customerPhone string) (pwd string, err error) {
 	sql := "SELECT * FROM logindetails WHERE customer_phone=$phone"
 	stm := c.dbConn.Prep(sql)
 	stm.SetText("$phone", customerPhone)
-	for {
-		if hasRow, err := stm.Step(); err != nil {
-			return pwd, err
-		} else if !hasRow {
-			break
-		}
-		pwd = stm.GetText("password")
+	if hasRow, err := stm.Step(); err != nil {
+		return pwd, err
+	} else if !hasRow {
+		return pwd, errors.New("no record for given customer phone")
 	}
+	pwd = stm.GetText("password")
 	return
 }
 
+// OK
 func (c DatabaseConnection) GetCustomerByPhone(phone string) (cust customer.Customer, err error) {
 	sql := "SELECT * FROM customer WHERE customer_phone=$phone"
 	stm := c.dbConn.Prep(sql)
@@ -46,25 +47,30 @@ func (c DatabaseConnection) GetCustomerByPhone(phone string) (cust customer.Cust
 	return cust, nil
 }
 
+// OK
 func (c DatabaseConnection) GetBankAccountOfCustomer(customerPhone string) (listBankAccount []bankaccount.BankAccount, err error) {
-	customer, err := c.GetCustomerByPhone(customerPhone)
-	if err != nil {
-		return listBankAccount, errors.New("no such customer with given phone number")
-	}
-
-	sql := "SELECT * FROM customer_bankaccount WHERE customer_id=$id"
+	sql := "SELECT * FROM customer_bankaccount WHERE customer_phone=$phone"
 	stm := c.dbConn.Prep(sql)
-	stm.SetText("$id", customer.CustomerID)
+	stm.SetText("$phone", customerPhone)
 	for {
 		if hasRow, err := stm.Step(); err != nil {
 			return listBankAccount, err
 		} else if !hasRow {
 			break
 		}
+		sqlB := "SELECT * FROM bankaccount WHERE bankaccount_id=$id"
+		stmB := c.dbConn.Prep(sqlB)
+		stmB.SetText("$id", stm.GetText("bankaccount_id"))
+		if ok, err := stmB.Step(); err != nil {
+			continue
+		} else if !ok {
+			continue
+		}
+
 		acc := bankaccount.BankAccount{
-			OwnerID:       customer.CustomerID,
+			OwnerPhone:    customerPhone,
 			BankAccountID: stm.GetText("bankaccount_id"),
-			Balance:       stm.GetFloat("bankaccount_balance"),
+			Balance:       stmB.GetFloat("bankaccount_balance"),
 		}
 
 		// query savings account
@@ -79,9 +85,10 @@ func (c DatabaseConnection) GetBankAccountOfCustomer(customerPhone string) (list
 	return
 }
 
-// TODO: recheck table and fields of this function
+// OK
 func (c DatabaseConnection) GetSavingsAccountOfBankAccount(bankAccountID string) (listSavingsAccount []savingsaccount.SavingsAccount, err error) {
-	sql := "SELECT * FROM customer_bankaccount WHERE bankaccount_id=$id"
+	fmt.Println("Start get savings account")
+	sql := "SELECT * FROM bankaccount_savingsaccount WHERE bankaccount_id=$id"
 	stm := c.dbConn.Prep(sql)
 	stm.SetText("$id", bankAccountID)
 	for {
@@ -90,48 +97,60 @@ func (c DatabaseConnection) GetSavingsAccountOfBankAccount(bankAccountID string)
 		} else if !hasRow {
 			break
 		}
-		savingsAcc := savingsaccount.SavingsAccount{
-			SavingsAccountID:    stm.GetText("savingsaccount_id"),
-			ProductType:         savingsproduct.SavingsProductType[stm.GetText("product_type")],
-			BankAccountID:       bankAccountID,
-			SavingsAmount:       stm.GetFloat("amount"),
-			InterestAmount:      stm.GetFloat("insterest_amount"),
-			StartTime:           stm.GetText("open_time"),
-			EndTime:             stm.GetText("settle_time"),
-			SavingsPeriod:       stm.GetInt64("savings_period"),
-			SettleInstruction:   savingsaccount.SettleType(stm.GetText("settle_instruction")),
-			OwnerID:             stm.GetText("ownder_id"),
-			InterestRate:        stm.GetFloat("interest_rate"),
-			BlockchainConfirmed: stm.GetBool("blockchain_confirmed"),
-			Currency:            stm.GetText("currency"),
+		savingsaccountID := stm.GetText("savingsaccount_id")
+		// fmt.Println(savingsaccountID)
+		// sqlS := "SELECT * FROM savingsaccount WHERE savingsaccount_id=$id"
+		// stmS := c.dbConn.Prep(sqlS)
+		// stmS.SetText("$id", savingsaccountID)
+		// if ok, err := stmS.Step(); err != nil {
+		// 	continue
+		// } else if !ok {
+		// 	continue
+		// }
+		// savingsAcc := savingsaccount.SavingsAccount{
+		// 	SavingsAccountID:    savingsaccountID,
+		// 	ProductType:         savingsproduct.SavingsProductType[stmS.GetText("type")],
+		// 	BankAccountID:       bankAccountID,
+		// 	SavingsAmount:       stmS.GetFloat("amount"),
+		// 	InterestAmount:      stmS.GetFloat("insterest_amount"),
+		// 	StartTime:           stmS.GetText("open_time"),
+		// 	EndTime:             stmS.GetText("settle_time"),
+		// 	SavingsPeriod:       stmS.GetInt64("savings_period"),
+		// 	SettleInstruction:   savingsaccount.SettleType(stmS.GetText("settle_instruction")),
+		// 	InterestRate:        stmS.GetFloat("interest_rate"),
+		// 	BlockchainConfirmed: stmS.GetBool("blockchain_confirmed"),
+		// 	Currency:            stmS.GetText("currency"),
+		// }
+		savingsAcc, err := c.GetSavingsAccountByID(savingsaccountID)
+		if err != nil {
+			continue
 		}
 		listSavingsAccount = append(listSavingsAccount, savingsAcc)
 	}
 	return
 }
 
+// OK
 func (c DatabaseConnection) GetSavingsAccountByID(savingsID string) (acc savingsaccount.SavingsAccount, err error) {
-	sql := "SELECT * FROM savingsaccout WHERE savingsaccount_id=$id"
+	sql := "SELECT * FROM savingsaccount WHERE savingsaccount_id=$id"
 	stm := c.dbConn.Prep(sql)
 	stm.SetText("$id", savingsID)
-	for {
-		if hasRow, err := stm.Step(); err != nil {
-			return acc, err
-		} else if !hasRow {
-			break
-		}
-		acc.SavingsAccountID = stm.GetText("savingsaccount_id")
-		acc.SavingsAmount = stm.GetFloat("amount")
-		acc.SavingsPeriod = stm.GetInt64("period")
-		acc.InterestRate = stm.GetFloat("interest_rate")
-		acc.InterestAmount = stm.GetFloat("interest_amount")
-		acc.EndTime = stm.GetText("settle_time")
-		acc.StartTime = stm.GetText("open_time")
-		// TODO: get product type here
-		acc.BlockchainConfirmed = stm.GetBool("blockchain_confirmed")
-		acc.Currency = stm.GetText("currency")
-		acc.SettleInstruction = savingsaccount.SettleType(stm.GetText("settle_instruction"))
+	if hasRow, err := stm.Step(); err != nil {
+		return acc, err
+	} else if !hasRow {
+		return acc, errors.New("no savings account with id given")
 	}
+	acc.SavingsAccountID = stm.GetText("savingsaccount_id")
+	acc.SavingsAmount = stm.GetFloat("amount")
+	acc.SavingsPeriod = stm.GetInt64("period")
+	acc.InterestRate = stm.GetFloat("interest_rate")
+	acc.InterestAmount = stm.GetFloat("interest_amount")
+	acc.EndTime = stm.GetText("settle_time")
+	acc.StartTime = stm.GetText("open_time")
+	// TODO: get product type here
+	acc.BlockchainConfirmed = stm.GetBool("blockchain_confirmed")
+	acc.Currency = stm.GetText("currency")
+	acc.SettleInstruction = savingsaccount.SettleType(stm.GetText("settle_instruction"))
 	return
 }
 
@@ -155,32 +174,31 @@ func (c DatabaseConnection) GetBankAccountByID(bankAccID string) (bankAcc bankac
 	return
 }
 
+// OK
 func (c DatabaseConnection) GetSavingsProductDetails(productName string) (product savingsproduct.SavingsProduct, err error) {
 	sql := "SELECT * FROM savingsproduct WHERE product_name=$name"
 	stm := c.dbConn.Prep(sql)
 	stm.SetText("$name", productName)
+	product.InterestRate = make(map[int]float64)
+	if hasRow, err := stm.Step(); err != nil {
+		return product, err
+	} else if !hasRow {
+		return product, errors.New("no savings product with name given")
+	}
+	sqlP := "SELECT * FROM interestrate WHERE product_id=$id"
+	stmP := c.dbConn.Prep(sqlP)
+	stmP.SetText("$id", stm.GetText("product_id"))
 	for {
-		if hasRow, err := stm.Step(); err != nil {
-			return product, err
-		} else if !hasRow {
+		if hasRowP, err := stmP.Step(); err != nil {
+			break
+		} else if !hasRowP {
 			break
 		}
-		sqlP := "SELECT * FROM interestrate WHERE product_id=$id"
-		stmP := c.dbConn.Prep(sqlP)
-		stmP.SetText("$id", stm.GetText("product_id"))
-		for {
-			if hasRowP, err := stm.Step(); err != nil {
-				break
-			} else if !hasRowP {
-				break
-			}
-			product.InterestRate[int(stm.GetInt64("period"))] = stm.GetFloat("interest_rate")
-		}
-		product.ProductName = stm.GetText("product_name")
-		product.ProductID = stm.GetText("product_id")
-		product.ProductAlias = stm.GetText("product_alias")
+		product.InterestRate[int(stmP.GetInt64("period"))] = stmP.GetFloat("interest_rate")
 	}
-	return
+	product.ProductName = stm.GetText("product_name")
+	product.ProductID = stm.GetText("product_id")
+	product.ProductAlias = stm.GetText("product_alias")
 }
 
 func (c DatabaseConnection) GetSavingsAccountConfirmStatus(savingsAccountID string) (isConfirmed bool, err error) {

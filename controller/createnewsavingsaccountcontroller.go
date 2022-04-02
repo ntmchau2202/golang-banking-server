@@ -40,7 +40,6 @@ func (c *CreateNewSavingsAccountController) CreateNewAccount(
 	savingsAccountIDStr = strconv.FormatInt(int64(savingsAccountID), 10)
 	mtx.Unlock()
 
-	// TODO: get time
 	curTime := utils.GetCurrentTimeFormatted()
 
 	// TODO: connect to the blockchain to save transaction
