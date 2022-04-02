@@ -148,7 +148,8 @@ func (c DatabaseConnection) GetSavingsAccountByID(savingsID string) (acc savings
 	acc.EndTime = stm.GetText("settle_time")
 	acc.StartTime = stm.GetText("open_time")
 	// TODO: get product type here
-	acc.BlockchainConfirmed = stm.GetBool("blockchain_confirmed")
+	acc.CreationConfirmed = stm.GetBool("creation_confirmed")
+	acc.SettleConfirmed = stm.GetBool("settle_confirmed")
 	acc.Currency = stm.GetText("currency")
 	acc.SettleInstruction = savingsaccount.SettleType(stm.GetText("settle_instruction"))
 	return
@@ -199,13 +200,23 @@ func (c DatabaseConnection) GetSavingsProductDetails(productName string) (produc
 	product.ProductName = stm.GetText("product_name")
 	product.ProductID = stm.GetText("product_id")
 	product.ProductAlias = stm.GetText("product_alias")
+	return
 }
 
-func (c DatabaseConnection) GetSavingsAccountConfirmStatus(savingsAccountID string) (isConfirmed bool, err error) {
+func (c DatabaseConnection) GetSavingsAccountCreationConfirmStatus(savingsAccountID string) (isConfirmed bool, err error) {
 	savingsAccount, err := c.GetSavingsAccountByID(savingsAccountID)
 	if err != nil {
 		return false, err
 	}
 
-	return savingsAccount.BlockchainConfirmed, nil
+	return savingsAccount.CreationConfirmed, nil
+}
+
+func (c DatabaseConnection) GetSavingsAccountSettleConfirmStatus(savingsAccountID string) (isConfirmed bool, err error) {
+	savingsAccount, err := c.GetSavingsAccountByID(savingsAccountID)
+	if err != nil {
+		return false, err
+	}
+
+	return savingsAccount.SettleConfirmed, nil
 }

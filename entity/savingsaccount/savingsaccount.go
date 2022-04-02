@@ -1,9 +1,5 @@
 package savingsaccount
 
-import (
-	"bankserver/entity/savingsproduct"
-)
-
 type SettleType string
 
 const (
@@ -13,17 +9,18 @@ const (
 )
 
 type SavingsAccount struct {
-	SavingsAccountID    string                        `json:"savingsaccount_id"`
-	ProductType         savingsproduct.SavingsProduct `json:"product_type"`
-	BankAccountID       string                        `json:"bankaccount_id"`
-	SavingsAmount       float64                       `json:"savings_amount"`
-	InterestAmount      float64                       `json:"actual_interest_amount"`
-	StartTime           string                        `json:"start_time"`
-	EndTime             string                        `json:"end_time"`
-	SavingsPeriod       int64                         `json:"savings_period"`
-	SettleInstruction   SettleType                    `json:"settle_instruction"`
-	OwnerID             string                        `json:"customer_id"`
-	InterestRate        float64                       `json:"interest_rate"`
-	BlockchainConfirmed bool                          `json:"blockchain_confirmed"`
-	Currency            string                        `json:"currency"`
+	SavingsAccountID  string     `json:"savingsaccount_id"`
+	ProductTypeName   string     `json:"product_type"`
+	BankAccountID     string     `json:"bankaccount_id"`
+	SavingsAmount     float64    `json:"savings_amount"`
+	InterestAmount    float64    `json:"actual_interest_amount"`
+	StartTime         string     `json:"start_time"`
+	EndTime           string     `json:"end_time"`
+	SavingsPeriod     int64      `json:"savings_period"`
+	SettleInstruction SettleType `json:"settle_instruction"`
+	OwnerID           string     `json:"customer_id"`
+	InterestRate      float64    `json:"interest_rate"`
+	CreationConfirmed bool       `json:"creation_confirmed"`
+	SettleConfirmed   bool       `json:"settle_confirmed"`
+	Currency          string     `json:"currency"`
 }

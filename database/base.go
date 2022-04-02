@@ -8,6 +8,7 @@ import (
 
 	"zombiezen.com/go/sqlite"
 	db "zombiezen.com/go/sqlite"
+	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 // singleton
@@ -56,4 +57,16 @@ func initConfigs() (err error) {
 		}
 	}
 	return
+}
+
+func (c DatabaseConnection) insert(stm string, args ...interface{}) (err error) {
+	execArgs := sqlitex.ExecOptions{}
+	execArgs.Args = append(execArgs.Args, args...)
+	return sqlitex.Execute(c.dbConn, stm, &execArgs)
+}
+
+func (c DatabaseConnection) update(stm string, args ...interface{}) (err error) {
+	execArgs := sqlitex.ExecOptions{}
+	execArgs.Args = append(execArgs.Args, args...)
+	return sqlitex.Execute(c.dbConn, stm, &execArgs)
 }
