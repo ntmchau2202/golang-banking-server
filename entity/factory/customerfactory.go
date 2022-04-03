@@ -6,10 +6,10 @@ import (
 	"strings"
 )
 
-type CustomerFactory struct{}
+type customerFactory struct{}
 
-func NewCustomerFactory() *CustomerFactory {
-	return &CustomerFactory{}
+func NewCustomerFactory() *customerFactory {
+	return &customerFactory{}
 }
 
 func isCustomerTypeExist(customerType string) bool {
@@ -21,7 +21,7 @@ func isCustomerTypeExist(customerType string) bool {
 	return false
 }
 
-func (f CustomerFactory) putCustomerType(name string) {
+func (f customerFactory) putCustomerType(name string) {
 	for _, name := range customer.CustomerType {
 		if isCustomerTypeExist(name) {
 			return
@@ -30,7 +30,7 @@ func (f CustomerFactory) putCustomerType(name string) {
 	customer.CustomerType = append(customer.CustomerType, name)
 }
 
-func (f CustomerFactory) GetCustomerByPhone(phone string) (cust customer.Customer, err error) {
+func (f customerFactory) GetCustomerByPhone(phone string) (cust customer.Customer, err error) {
 	db, err := database.GetDBConnection()
 	if err != nil {
 		return cust, err

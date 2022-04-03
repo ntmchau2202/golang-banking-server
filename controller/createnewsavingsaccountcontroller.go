@@ -33,9 +33,11 @@ func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 	estimatedInterestAmount float64,
 	settleInstruction string,
 	currency string,
-) (err error) {
+	openTime string,
+) (savingsAccount savingsaccount.SavingsAccount, err error) {
 	// Flow: create new account and save to database first
-	savingsAccount, err := c.createNewAccount(
+	// TODO: process open time here
+	savingsAccount, err = c.createNewAccount(
 		customerPhone,
 		bankAccountID,
 		savingType,

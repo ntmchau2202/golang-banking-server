@@ -10,6 +10,6 @@ func NewGetSavingsAccountOnChain() *GetSavingsAccountOnChain {
 }
 
 func (c *GetSavingsAccountOnChain) GetSavingsAccountOnChain(savingsAccountID string) (acc savingsaccount.SavingsAccount, err error) {
-	// TODO: finish the function here
+	// TODO: should we make this into our desired worker?
 	return
 }

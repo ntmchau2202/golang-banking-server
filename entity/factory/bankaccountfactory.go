@@ -6,14 +6,14 @@ import (
 	"errors"
 )
 
-type BankAccountFactory struct {
+type bankAccountFactory struct {
 }
 
-func NewBankAccountFactory() *BankAccountFactory {
-	return &BankAccountFactory{}
+func NewBankAccountFactory() *bankAccountFactory {
+	return &bankAccountFactory{}
 }
 
-func (c *BankAccountFactory) GetBankAccountsOfCustomer(phone string) (listBankAccount []bankaccount.BankAccount, err error) {
+func (c *bankAccountFactory) GetBankAccountsOfCustomer(phone string) (listBankAccount []bankaccount.BankAccount, err error) {
 	db, err := database.GetDBConnection()
 	if err != nil {
 		return listBankAccount, errors.New("unexpected error when getting customer information")
@@ -22,7 +22,7 @@ func (c *BankAccountFactory) GetBankAccountsOfCustomer(phone string) (listBankAc
 	return db.GetBankAccountOfCustomer(phone)
 }
 
-func (c *BankAccountFactory) GetBankAccountByID(bankAccID string) (acc bankaccount.BankAccount, err error) {
+func (c *bankAccountFactory) GetBankAccountByID(bankAccID string) (acc bankaccount.BankAccount, err error) {
 	db, err := database.GetDBConnection()
 	if err != nil {
 		return

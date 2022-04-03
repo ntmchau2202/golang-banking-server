@@ -9,7 +9,7 @@ import (
 type savingsProductFactory struct {
 }
 
-func GetNewSavingsProductFactory() *savingsProductFactory {
+func NewSavingsProductFactory() *savingsProductFactory {
 	return &savingsProductFactory{}
 }
 

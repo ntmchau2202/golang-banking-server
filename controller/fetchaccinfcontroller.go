@@ -12,7 +12,7 @@ func NewFetchAccInfController() *FetchAccInfController {
 	return &FetchAccInfController{}
 }
 
-func FetchAccInf(
+func (c *FetchAccInfController) FetchAccInf(
 	customerPhone string,
 	bankAccountID ...string,
 ) (listBankAcc []bankaccount.BankAccount, err error) {

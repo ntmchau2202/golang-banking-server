@@ -18,7 +18,11 @@ func NewSettleSavingsAccountController() *SettleSavingsAccountController {
 	return &SettleSavingsAccountController{}
 }
 
-func (c *SettleSavingsAccountController) SettleSavingsAccount(savingsAccountID string) (err error) {
+func (c *SettleSavingsAccountController) SettleSavingsAccount(
+	customerPhone string,
+	savingsAccountID string,
+) (err error) {
+	// TODO: process customer phone here
 	// FLOW: save into database first
 	currentTime := utils.GetCurrentTimeFormatted()
 	err = c.settleSavingsAccount(savingsAccountID, currentTime)
@@ -72,6 +76,7 @@ func (c *SettleSavingsAccountController) requestSettleConfirmation(
 	var details map[string]interface{} = make(map[string]interface{})
 	details["savingsaccount_id"] = savingsAccountID
 	details["owner_id"] = ownerID
+	details["owner_phone"] = ownerPhone
 	details["actual_interest_amout"] = strconv.FormatFloat(actualInterestAmount, 'f', -1, 64)
 	details["settle_time"] = settleTime
 
