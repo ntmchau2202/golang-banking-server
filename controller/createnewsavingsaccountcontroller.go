@@ -76,7 +76,7 @@ func (c *CreateNewSavingsAccountController) createNewAccount(
 	settleInstruction string,
 	currency string,
 ) (savingsAcc savingsaccount.SavingsAccount, err error) {
-	savingsProduct, err := factory.GetNewSavingsProductFactory().GetSavingsProductByName(savingType)
+	savingsProduct, err := factory.NewSavingsProductFactory().GetSavingsProductByName(savingType)
 	if err != nil {
 		return savingsAcc, errors.New("an error occurred when fetching product information")
 	}
