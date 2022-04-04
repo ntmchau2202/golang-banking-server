@@ -18,6 +18,11 @@ func Login(ctx *gin.Context) {
 		return
 	}
 
+	if !msg.CheckCommand(message.LOGIN) {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("command mismatch"))
+		return
+	}
+
 	customerPhone := msg.Details["customer_phone"].(string)
 	password := msg.Details["password"].(string)
 	if err = validatePhone(customerPhone); err != nil {
@@ -37,13 +42,7 @@ func Login(ctx *gin.Context) {
 		return
 	}
 
-	var details map[string]interface{} = make(map[string]interface{})
-	details["customer_details"] = cust
-
-	ctx.JSON(http.StatusOK, response.Response{
-		Stat:    message.SUCCESS,
-		Details: details,
-	})
+	ctx.JSON(http.StatusOK, response.LoginSuccessResponse("login successfully", cust))
 }
 
 func CreateNewSavingsAccount(ctx *gin.Context) {
@@ -54,8 +53,13 @@ func CreateNewSavingsAccount(ctx *gin.Context) {
 		return
 	}
 
+	if !msg.CheckCommand(message.CREATE_ONLINE_SAVINGS_ACCOUNT) {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("command mismatch"))
+		return
+	}
+
 	customerPhone := msg.Details["customer_phone"].(string)
-	bankAccountID := msg.Details["bankAccountID"].(string)
+	bankAccountID := msg.Details["bankaccount_id"].(string)
 	savingsType := msg.Details["product_type"].(string)
 	savingsPeriod := msg.Details["period"].(int)
 	savingsAmount := msg.Details["savings_amount"].(float64)
@@ -134,12 +138,7 @@ func CreateNewSavingsAccount(ctx *gin.Context) {
 		return
 	}
 
-	var details map[string]interface{} = make(map[string]interface{})
-	details["new_savings_account"] = newSavingsAccount
-	ctx.JSON(http.StatusOK, response.Response{
-		Stat:    message.SUCCESS,
-		Details: details,
-	})
+	ctx.JSON(http.StatusOK, response.CreateNewSavingsAccountSuccessResponse("new savings account created successfully, waiting for blockchain confirmation", newSavingsAccount))
 }
 
 func SettleSavingsAccount(ctx *gin.Context) {
@@ -147,6 +146,10 @@ func SettleSavingsAccount(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(msg)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("bad request"))
+		return
+	}
+	if !msg.CheckCommand(message.SETTLE_ONLINE_SAVINGS_ACCOUNT) {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("command mismatch"))
 		return
 	}
 	savingsAccountID := msg.Details["savingsaccout_id"].(string)
@@ -168,12 +171,7 @@ func SettleSavingsAccount(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, response.ErrorResponse(err.Error()))
 		return
 	}
-	var details map[string]interface{} = make(map[string]interface{})
-	details["settle_message"] = "success"
-	ctx.JSON(http.StatusOK, response.Response{
-		Stat:    message.SUCCESS,
-		Details: details,
-	})
+	ctx.JSON(http.StatusOK, response.SettleSavingsAccountSuccessResponse("settle savings account successfully, waiting for blockchain confirmation"))
 }
 
 func FetchAccountInfo(ctx *gin.Context) {
@@ -183,31 +181,23 @@ func FetchAccountInfo(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("bad request"))
 		return
 	}
+	if !msg.CheckCommand(message.FETCH_LIST_SAVINGS_ACCOUNT) {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("command mismatch"))
+		return
+	}
 	customerPhone := msg.Details["customer_phone"].(string)
-	bankAccountID := msg.Details["bankAccountID"].(string)
 
 	if err = validatePhone(customerPhone); err != nil {
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}
 
-	if err = validateBankAccountID(bankAccountID); err != nil {
-		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
-		return
-	}
-
 	ctrl := controller.NewFetchAccInfController()
-	result, err := ctrl.FetchAccInf(customerPhone, bankAccountID)
+	result, err := ctrl.FetchAccInf(customerPhone)
 	if err != nil {
 		ctx.JSON(http.StatusOK, response.ErrorResponse(err.Error()))
 		return
 	}
 
-	var details map[string]interface{} = make(map[string]interface{})
-
-	details["account_info"] = result
-	ctx.JSON(http.StatusOK, response.Response{
-		Stat:    message.SUCCESS,
-		Details: details,
-	})
+	ctx.JSON(http.StatusOK, response.FetchAccInfResponse("get account info successfully", result))
 }

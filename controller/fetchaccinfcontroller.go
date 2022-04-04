@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"bankserver/entity/bankaccount"
+	"bankserver/entity/customer"
 	"bankserver/entity/factory"
 )
 
@@ -14,16 +14,8 @@ func NewFetchAccInfController() *FetchAccInfController {
 
 func (c *FetchAccInfController) FetchAccInf(
 	customerPhone string,
-	bankAccountID ...string,
-) (listBankAcc []bankaccount.BankAccount, err error) {
-	if len(bankAccountID) != 0 {
-		for _, acc := range bankAccountID {
-			bankAcc, err := factory.NewBankAccountFactory().GetBankAccountByID(acc)
-			if err != nil {
-				continue
-			}
-			listBankAcc = append(listBankAcc, bankAcc)
-		}
-	}
+) (cust customer.Customer, err error) {
+	// borrow controller :)
+	cust, err = factory.NewCustomerFactory().GetCustomerByPhone(customerPhone)
 	return
 }
