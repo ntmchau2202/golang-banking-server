@@ -5,6 +5,8 @@ import (
 	"bankserver/entity/message"
 	"bankserver/entity/message/request"
 	"bankserver/entity/message/response"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,9 +14,9 @@ import (
 
 func Login(ctx *gin.Context) {
 	var msg request.Request
-	err := ctx.ShouldBindJSON(msg)
+	err := ctx.ShouldBindJSON(&msg)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("bad request"))
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}
 
@@ -47,7 +49,7 @@ func Login(ctx *gin.Context) {
 
 func CreateNewSavingsAccount(ctx *gin.Context) {
 	var msg request.Request
-	err := ctx.ShouldBindJSON(msg)
+	err := ctx.ShouldBindJSON(&msg)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("bad request"))
 		return
@@ -61,7 +63,7 @@ func CreateNewSavingsAccount(ctx *gin.Context) {
 	customerPhone := msg.Details["customer_phone"].(string)
 	bankAccountID := msg.Details["bankaccount_id"].(string)
 	savingsType := msg.Details["product_type"].(string)
-	savingsPeriod := msg.Details["period"].(int)
+	savingsPeriod := int(msg.Details["savings_period"].(float64))
 	savingsAmount := msg.Details["savings_amount"].(float64)
 	interestRate := msg.Details["interest_rate"].(float64)
 	estimatedInterestAmount := msg.Details["estimated_interest_amount"].(float64)
@@ -143,8 +145,9 @@ func CreateNewSavingsAccount(ctx *gin.Context) {
 
 func SettleSavingsAccount(ctx *gin.Context) {
 	var msg request.Request
-	err := ctx.ShouldBindJSON(msg)
+	err := ctx.ShouldBindJSON(&msg)
 	if err != nil {
+		log.Panic(err)
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("bad request"))
 		return
 	}
@@ -152,15 +155,17 @@ func SettleSavingsAccount(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("command mismatch"))
 		return
 	}
-	savingsAccountID := msg.Details["savingsaccout_id"].(string)
+	savingsAccountID := msg.Details["savingsaccount_id"].(string)
 	customerPhone := msg.Details["customer_phone"].(string)
 
 	if err = validatePhone(customerPhone); err != nil {
+		log.Panic(err)
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}
 
 	if err = validateSavingsAccountID(savingsAccountID); err != nil {
+		log.Panic(err)
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}
@@ -168,6 +173,7 @@ func SettleSavingsAccount(ctx *gin.Context) {
 	ctrl := controller.NewSettleSavingsAccountController()
 	err = ctrl.SettleSavingsAccount(customerPhone, savingsAccountID)
 	if err != nil {
+		log.Panic(err)
 		ctx.JSON(http.StatusOK, response.ErrorResponse(err.Error()))
 		return
 	}
@@ -176,8 +182,9 @@ func SettleSavingsAccount(ctx *gin.Context) {
 
 func FetchAccountInfo(ctx *gin.Context) {
 	var msg request.Request
-	err := ctx.ShouldBindJSON(msg)
+	err := ctx.ShouldBindJSON(&msg)
 	if err != nil {
+		fmt.Println(err)
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("bad request"))
 		return
 	}

@@ -13,6 +13,7 @@ type Response struct {
 
 func ErrorResponse(msg string) (resp Response) {
 	resp.Stat = message.SUCCESS
+	resp.Details = make(map[string]interface{})
 	resp.Details["message"] = msg
 	return
 }

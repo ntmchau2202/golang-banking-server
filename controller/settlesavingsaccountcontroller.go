@@ -61,8 +61,8 @@ func (c *SettleSavingsAccountController) settleSavingsAccount(
 		return
 	}
 	// TODO: calculate actual interest amount here
-	var actualInterestAmount float64
-	return db.SaveSettleSavingsAccount(savingsAccount, settleTime, actualInterestAmount, false)
+	var actualInterestAmount float64 = 0
+	return db.SaveSettleSavingsAccount(savingsAccount, settleTime, actualInterestAmount, "")
 }
 
 func (c *SettleSavingsAccountController) requestSettleConfirmation(

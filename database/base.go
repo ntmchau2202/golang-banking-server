@@ -3,6 +3,7 @@ package database
 import (
 	"bankserver/entity/customer"
 	"bankserver/entity/savingsproduct"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -13,7 +14,7 @@ import (
 
 // singleton
 const (
-	dbPath string = "../../resource/bankDB.db"
+	dbPath string = "./resource/bankDB.db"
 )
 
 type DatabaseConnection struct {
@@ -28,6 +29,7 @@ func GetDBConnection() (conn DatabaseConnection, err error) {
 	singletonDB.Do(func() {
 		dBConnection, err := db.OpenConn(dbPath, sqlite.OpenReadWrite)
 		if err != nil {
+			fmt.Println(err)
 			return
 		}
 		databaseConnection.dbConn = dBConnection
@@ -37,6 +39,7 @@ func GetDBConnection() (conn DatabaseConnection, err error) {
 }
 
 func initConfigs() (err error) {
+	savingsproduct.SavingsProductType = make(map[string]savingsproduct.SavingsProduct)
 	stm := databaseConnection.dbConn.Prep("SELECT * FROM configs")
 	if err != nil {
 		return
@@ -54,8 +57,14 @@ func initConfigs() (err error) {
 			customer.CustomerType = append(customer.CustomerType, value)
 		} else if strings.Compare(field, "savings_product_type") == 0 {
 			savingsproduct.SavingsProductTypeName = append(savingsproduct.SavingsProductTypeName, value)
+			product, err := databaseConnection.GetSavingsProductDetails(value)
+			if err != nil {
+				continue
+			}
+			savingsproduct.SavingsProductType[value] = product
 		}
 	}
+
 	return
 }
 

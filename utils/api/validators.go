@@ -6,6 +6,7 @@ import (
 	"bankserver/entity/savingsproduct"
 	"bankserver/utils"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 )
@@ -46,9 +47,11 @@ func validateSavingsType(savingsType string) (err error) {
 	if len(savingsType) == 0 {
 		return errors.New("missing savings type")
 	}
-
+	fmt.Println(savingsproduct.SavingsProductTypeName)
+	fmt.Println(savingsType)
 	for _, item := range savingsproduct.SavingsProductTypeName {
 		if item == savingsType {
+			fmt.Println("Gotcha")
 			return nil
 		}
 	}
@@ -64,7 +67,10 @@ func validateSavingsPeriod(savingsType string, savingsPeriod int) (err error) {
 		return errors.New("invalid savings period")
 	}
 
+	fmt.Println("Interestrate map:", savingsproduct.SavingsProductType[savingsType].InterestRate)
 	for period := range savingsproduct.SavingsProductType[savingsType].InterestRate {
+		fmt.Println("period:", period)
+		fmt.Println("input savingsPeriod:", savingsPeriod)
 		if period == savingsPeriod {
 			return nil
 		}
@@ -100,8 +106,9 @@ func validateCurrency(currency string) (err error) {
 }
 
 func validateTime(t string) (err error) {
-	_, err = time.Parse(t, "Mon, 02 Jan 2006 15:04:05 MST")
+	_, err = time.Parse(time.RFC1123, t)
 	if err != nil {
+		fmt.Println(err)
 		return errors.New("invalid time format")
 	}
 	return nil

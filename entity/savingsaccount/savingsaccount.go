@@ -22,7 +22,7 @@ type SavingsAccount struct {
 	OwnerPhone           string     `json:"owner_phone"`
 	OwnerID              string     `json:"customer_id"`
 	InterestRate         float64    `json:"interest_rate"`
-	CreationConfirmed    bool       `json:"creation_confirmed"`
-	SettleConfirmed      bool       `json:"settle_confirmed"`
+	CreationConfirmed    string     `json:"creation_confirmed"`
+	SettleConfirmed      string     `json:"settle_confirmed"`
 	Currency             string     `json:"currency"`
 }

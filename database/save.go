@@ -15,11 +15,12 @@ func (c DatabaseConnection) SaveCreateNewSavingsAccount(savingsAccount savingsac
 			open_time,
 			settle_time,
 			type,
-			blockchain_confirmed,
+			creation_confirmed,
+			settle_confirmed,
 			settle_instruction,
 			currency
 		)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
 		`
 	return c.insert(
 		sql,
@@ -33,21 +34,21 @@ func (c DatabaseConnection) SaveCreateNewSavingsAccount(savingsAccount savingsac
 		savingsAccount.EndTime,
 		savingsAccount.ProductTypeName,
 		savingsAccount.CreationConfirmed,
+		savingsAccount.SettleConfirmed,
 		string(savingsAccount.SettleInstruction),
 		savingsAccount.Currency,
 	)
 }
 
-func (c DatabaseConnection) SaveSettleSavingsAccount(savingsAccountID string, settleTime string, actualInterestAmt float64, confirmed bool) (err error) {
+func (c DatabaseConnection) SaveSettleSavingsAccount(savingsAccountID string, settleTime string, actualInterestAmt float64, confirmed string) (err error) {
 	sql := `UPDATE savingsaccount
 			SET settle_time=?,
-				actual_interest_amount=?,
-				blockchain_confirmed=?
+				actual_interest_amount=?
 			WHERE savingsaccount_id=?`
-	return c.update(sql, settleTime, actualInterestAmt, confirmed, savingsAccountID)
+	return c.update(sql, settleTime, actualInterestAmt, savingsAccountID)
 }
 
-func (c DatabaseConnection) SaveSavingAccountCreationConfirmationStatus(savingsAccountID string, confirmed bool) (err error) {
+func (c DatabaseConnection) SaveSavingAccountCreationConfirmationStatus(savingsAccountID string, confirmed string) (err error) {
 	sql := `UPDATE savingsaccount
 			SET creation_confirmed=?
 			WHERE savingsaccount_id=?`

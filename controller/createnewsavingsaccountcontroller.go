@@ -10,6 +10,7 @@ import (
 	"bankserver/entity/savingsaccount"
 	"bankserver/utils"
 	"errors"
+	"fmt"
 	"strconv"
 	"sync"
 )
@@ -50,18 +51,18 @@ func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 	if err != nil {
 		return
 	}
-	_, err = c.requestCreationConfirmation(
-		savingsAccount.SavingsAccountID,
-		savingsAccount.OwnerID,
-		savingsAccount.OwnerPhone,
-		savingsAccount.ProductTypeName,
-		savingsAccount.SavingsAmount,
-		int(savingsAccount.SavingsPeriod),
-		savingsAccount.InterestRate,
-		savingsAccount.InterestAmount,
-		savingsAccount.StartTime,
-		savingsAccount.Currency,
-	)
+	// _, err = c.requestCreationConfirmation(
+	// 	savingsAccount.SavingsAccountID,
+	// 	savingsAccount.OwnerID,
+	// 	savingsAccount.OwnerPhone,
+	// 	savingsAccount.ProductTypeName,
+	// 	savingsAccount.SavingsAmount,
+	// 	int(savingsAccount.SavingsPeriod),
+	// 	savingsAccount.InterestRate,
+	// 	savingsAccount.InterestAmount,
+	// 	savingsAccount.StartTime,
+	// 	savingsAccount.Currency,
+	// )
 	// the work of updating will be put in another worker
 	return
 }
@@ -114,6 +115,7 @@ func (c *CreateNewSavingsAccountController) createNewAccount(
 
 	err = db.SaveCreateNewSavingsAccount(sAcc)
 	if err != nil {
+		fmt.Println(err)
 		return savingsAcc, errors.New("cannot create new account")
 	}
 	savingsAcc.SavingsAccountID = savingsAccountIDStr
