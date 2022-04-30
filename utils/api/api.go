@@ -125,7 +125,7 @@ func CreateNewSavingsAccount(ctx *gin.Context) {
 	}
 
 	ctrl := controller.NewNewSavingsAccountController()
-	newSavingsAccount, err := ctrl.CreateNewSavingsAccount(
+	signature, err := ctrl.CreateNewSavingsAccount(
 		customerPhone,
 		bankAccountID,
 		savingsType,
@@ -141,7 +141,7 @@ func CreateNewSavingsAccount(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, response.CreateNewSavingsAccountSuccessResponse("new savings account created successfully, waiting for blockchain confirmation", newSavingsAccount))
+	ctx.JSON(http.StatusOK, response.CreateNewSavingsAccountSuccessResponse("new savings account created successfully, waiting for blockchain confirmation", signature))
 }
 
 func SettleSavingsAccount(ctx *gin.Context) {
@@ -171,12 +171,12 @@ func SettleSavingsAccount(ctx *gin.Context) {
 	}
 
 	ctrl := controller.NewSettleSavingsAccountController()
-	err = ctrl.SettleSavingsAccount(customerPhone, savingsAccountID)
+	signature, err := ctrl.SettleSavingsAccount(customerPhone, savingsAccountID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(err.Error()))
 		return
 	}
-	ctx.JSON(http.StatusOK, response.SettleSavingsAccountSuccessResponse("settle savings account successfully, waiting for blockchain confirmation"))
+	ctx.JSON(http.StatusOK, response.SettleSavingsAccountSuccessResponse("settle savings account successfully, waiting for blockchain confirmation", signature))
 }
 
 func FetchAccountInfo(ctx *gin.Context) {
@@ -205,4 +205,45 @@ func FetchAccountInfo(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response.FetchAccInfResponse("get account info successfully", result))
+}
+
+func ConfirmTransaction(ctx *gin.Context) {
+	var msg request.Request
+	err := ctx.ShouldBindJSON(&msg)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("bad request"))
+		return
+	}
+	if !msg.CheckCommand(message.CONFIRM_TRANSACTION) {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("command mismatch"))
+		return
+	}
+
+	txnHash := msg.Details["txn_hash"].(string)
+	savingsAccountID := msg.Details["savingsaccount_id"].(string)
+	action := msg.Details["action"].(string)
+
+	if action != message.CREATE_ONLINE_SAVINGS_ACCOUNT.ToString() && action != message.SETTLE_ONLINE_SAVINGS_ACCOUNT.ToString() {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("invalid action"))
+		return
+	}
+
+	ctrl := controller.NewConfirmTransactionController()
+	if action == message.CREATE_ONLINE_SAVINGS_ACCOUNT.ToString() {
+		if err := ctrl.SaveOpenTransaction(savingsAccountID, txnHash); err != nil {
+			ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
+			return
+		} else {
+			ctx.JSON(http.StatusNoContent, struct{}{})
+			return
+		}
+	} else if action == message.SETTLE_ONLINE_SAVINGS_ACCOUNT.ToString() {
+		if err := ctrl.SaveSettleTransaction(savingsAccountID, txnHash); err != nil {
+			ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
+			return
+		} else {
+			ctx.JSON(http.StatusNoContent, struct{}{})
+			return
+		}
+	}
 }

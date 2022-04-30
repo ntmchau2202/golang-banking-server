@@ -3,7 +3,6 @@ package response
 import (
 	"bankserver/entity/customer"
 	"bankserver/entity/message"
-	"bankserver/entity/savingsaccount"
 )
 
 type Response struct {
@@ -36,18 +35,19 @@ func FetchAccInfResponse(msg string, cust customer.Customer) (resp Response) {
 	return
 }
 
-func CreateNewSavingsAccountSuccessResponse(msg string, acc savingsaccount.SavingsAccount) (resp Response) {
+func CreateNewSavingsAccountSuccessResponse(msg string, signature string) (resp Response) {
 	var details map[string]interface{} = make(map[string]interface{})
 	details["message"] = msg
-	details["savings_account"] = acc
+	details["signature"] = signature
 	resp.Stat = message.SUCCESS
 	resp.Details = details
 	return
 }
 
-func SettleSavingsAccountSuccessResponse(msg string) (resp Response) {
+func SettleSavingsAccountSuccessResponse(msg string, signature string) (resp Response) {
 	var details map[string]interface{} = make(map[string]interface{})
 	details["message"] = msg
+	details["signature"] = signature
 	resp.Stat = message.SUCCESS
 	resp.Details = details
 	return

@@ -2,13 +2,11 @@ package controller
 
 import (
 	"bankserver/database"
-	"bankserver/entity/client"
 	"bankserver/entity/factory"
-	"bankserver/entity/message"
-	"bankserver/entity/message/request"
-	"bankserver/entity/message/response"
 	"bankserver/entity/savingsaccount"
+	"bankserver/entity/signer"
 	"bankserver/utils"
+	"encoding/json"
 	"errors"
 	"strconv"
 	"sync"
@@ -34,10 +32,10 @@ func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 	settleInstruction string,
 	currency string,
 	openTime string,
-) (savingsAccount savingsaccount.SavingsAccount, err error) {
+) (signature string, err error) {
 	// Flow: create new account and save to database first
 	// TODO: process open time here
-	savingsAccount, err = c.createNewAccount(
+	savingsAccount, err := c.createNewAccount(
 		customerPhone,
 		bankAccountID,
 		savingType,
@@ -50,19 +48,19 @@ func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 	if err != nil {
 		return
 	}
-	// _, err = c.requestCreationConfirmation(
-	// 	savingsAccount.SavingsAccountID,
-	// 	savingsAccount.OwnerID,
-	// 	savingsAccount.OwnerPhone,
-	// 	savingsAccount.ProductTypeName,
-	// 	savingsAccount.SavingsAmount,
-	// 	int(savingsAccount.SavingsPeriod),
-	// 	savingsAccount.InterestRate,
-	// 	savingsAccount.InterestAmount,
-	// 	savingsAccount.StartTime,
-	// 	savingsAccount.Currency,
-	// )
-	// the work of updating will be put in another worker
+	// create a json message and sign it with the bank's private key
+	// then return this to the customer
+	signer, err := signer.NewSigner("")
+	if err != nil {
+		return
+	}
+
+	data, err := json.Marshal(savingsAccount)
+	if err != nil {
+		return
+	}
+
+	signature, err = signer.Sign(string(data))
 	return
 }
 
@@ -120,39 +118,39 @@ func (c *CreateNewSavingsAccountController) createNewAccount(
 	return savingsAcc, nil
 }
 
-func (c *CreateNewSavingsAccountController) requestCreationConfirmation(
-	savingsAccountID string,
-	ownerID string,
-	ownerPhone string,
-	productType string,
-	savingsAmount float64,
-	savingsPeriod int,
-	interstRate float64,
-	estimatedInterestAmount float64,
-	openTime string,
-	currency string,
-) (result response.Response, err error) {
-	// TODO: hey i forgot the link to the blockchain server :)
-	var details map[string]interface{} = make(map[string]interface{})
-	details["savingsaccount_id"] = savingsAccountID
-	details["owner_id"] = ownerID
-	details["owner_phone"] = ownerPhone
-	details["product_type"] = productType
-	details["savings_amount"] = strconv.FormatFloat(savingsAmount, 'f', -1, 64)
-	details["savings_period"] = strconv.FormatInt(int64(savingsPeriod), 10)
-	details["interest_rate"] = strconv.FormatFloat(interstRate, 'f', -1, 64)
-	details["estimated_interest_amount"] = strconv.FormatFloat(estimatedInterestAmount, 'f', -1, 64)
-	details["open_time"] = openTime
-	details["currency"] = currency
+// func (c *CreateNewSavingsAccountController) requestCreationConfirmation(
+// 	savingsAccountID string,
+// 	ownerID string,
+// 	ownerPhone string,
+// 	productType string,
+// 	savingsAmount float64,
+// 	savingsPeriod int,
+// 	interstRate float64,
+// 	estimatedInterestAmount float64,
+// 	openTime string,
+// 	currency string,
+// ) (result response.Response, err error) {
+// 	// TODO: hey i forgot the link to the blockchain server :)
+// 	var details map[string]interface{} = make(map[string]interface{})
+// 	details["savingsaccount_id"] = savingsAccountID
+// 	details["owner_id"] = ownerID
+// 	details["owner_phone"] = ownerPhone
+// 	details["product_type"] = productType
+// 	details["savings_amount"] = strconv.FormatFloat(savingsAmount, 'f', -1, 64)
+// 	details["savings_period"] = strconv.FormatInt(int64(savingsPeriod), 10)
+// 	details["interest_rate"] = strconv.FormatFloat(interstRate, 'f', -1, 64)
+// 	details["estimated_interest_amount"] = strconv.FormatFloat(estimatedInterestAmount, 'f', -1, 64)
+// 	details["open_time"] = openTime
+// 	details["currency"] = currency
 
-	msg := request.Request{
-		Cmd:     message.CREATE_ONLINE_SAVINGS_ACCOUNT,
-		Details: details,
-	}
-	newClient := client.NewClient("")
-	result, err = newClient.POST("", msg)
-	if err != nil {
-		return
-	}
-	return
-}
+// 	msg := request.Request{
+// 		Cmd:     message.CREATE_ONLINE_SAVINGS_ACCOUNT,
+// 		Details: details,
+// 	}
+// 	newClient := client.NewClient("")
+// 	result, err = newClient.POST("", msg)
+// 	if err != nil {
+// 		return
+// 	}
+// 	return
+// }
