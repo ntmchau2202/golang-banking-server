@@ -40,11 +40,12 @@ func Login(ctx *gin.Context) {
 	ctrl := controller.NewLoginController()
 	cust, err := ctrl.Login(customerPhone, password)
 	if err != nil {
-		ctx.JSON(http.StatusOK, response.ErrorResponse(err.Error()))
+		fmt.Println("error login:", err)
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}
-
 	ctx.JSON(http.StatusOK, response.LoginSuccessResponse("login successfully", cust))
+
 }
 
 func CreateNewSavingsAccount(ctx *gin.Context) {
@@ -136,7 +137,7 @@ func CreateNewSavingsAccount(ctx *gin.Context) {
 		openTime,
 	)
 	if err != nil {
-		ctx.JSON(http.StatusOK, response.ErrorResponse(err.Error()))
+		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(err.Error()))
 		return
 	}
 
@@ -147,7 +148,6 @@ func SettleSavingsAccount(ctx *gin.Context) {
 	var msg request.Request
 	err := ctx.ShouldBindJSON(&msg)
 	if err != nil {
-		log.Panic(err)
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("bad request"))
 		return
 	}
@@ -173,8 +173,7 @@ func SettleSavingsAccount(ctx *gin.Context) {
 	ctrl := controller.NewSettleSavingsAccountController()
 	err = ctrl.SettleSavingsAccount(customerPhone, savingsAccountID)
 	if err != nil {
-		log.Panic(err)
-		ctx.JSON(http.StatusOK, response.ErrorResponse(err.Error()))
+		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(err.Error()))
 		return
 	}
 	ctx.JSON(http.StatusOK, response.SettleSavingsAccountSuccessResponse("settle savings account successfully, waiting for blockchain confirmation"))
@@ -184,7 +183,6 @@ func FetchAccountInfo(ctx *gin.Context) {
 	var msg request.Request
 	err := ctx.ShouldBindJSON(&msg)
 	if err != nil {
-		fmt.Println(err)
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("bad request"))
 		return
 	}
@@ -202,7 +200,7 @@ func FetchAccountInfo(ctx *gin.Context) {
 	ctrl := controller.NewFetchAccInfController()
 	result, err := ctrl.FetchAccInf(customerPhone)
 	if err != nil {
-		ctx.JSON(http.StatusOK, response.ErrorResponse(err.Error()))
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}
 

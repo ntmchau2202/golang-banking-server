@@ -10,7 +10,6 @@ import (
 	"bankserver/entity/savingsaccount"
 	"bankserver/utils"
 	"errors"
-	"fmt"
 	"strconv"
 	"sync"
 )
@@ -115,7 +114,6 @@ func (c *CreateNewSavingsAccountController) createNewAccount(
 
 	err = db.SaveCreateNewSavingsAccount(sAcc)
 	if err != nil {
-		fmt.Println(err)
 		return savingsAcc, errors.New("cannot create new account")
 	}
 	savingsAcc.SavingsAccountID = savingsAccountIDStr

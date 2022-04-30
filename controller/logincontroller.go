@@ -5,6 +5,7 @@ import (
 	"bankserver/entity/customer"
 	"bankserver/entity/factory"
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -18,16 +19,21 @@ func NewLoginController() (c *LoginController) {
 func (c *LoginController) authenticate(phone string, password string) (success bool, err error) {
 	db, err := database.GetDBConnection()
 	if err != nil {
+		fmt.Println("error getting database connection:", err)
 		return false, errors.New("internal server error when performing authentication")
 	}
 
 	savedPwd, err := db.GetCustomerLoginInfo(phone)
 	if err != nil {
+		if err.Error() == "no record for given customer phone" {
+			return true, errors.New("invalid customer")
+		}
 		return false, errors.New("internal server error when performing authentication")
 	}
 	if strings.Compare(savedPwd, password) == 0 {
 		return true, nil
 	} else {
+		fmt.Println("invalid password")
 		return false, nil
 	}
 }
