@@ -9,20 +9,20 @@ const (
 )
 
 type SavingsAccount struct {
-	SavingsAccountID     string     `json:"savingsaccount_id"`
-	ProductTypeName      string     `json:"product_type"`
-	BankAccountID        string     `json:"bankaccount_id"`
-	SavingsAmount        float64    `json:"savings_amount"`
-	InterestAmount       float64    `json:"estimated_interest_amount"`
-	ActualInterestAmount float64    `json:"actual_interest_amount"`
-	StartTime            string     `json:"open_time"`
-	EndTime              string     `json:"settle_time"`
-	SavingsPeriod        int64      `json:"savings_period"`
-	SettleInstruction    SettleType `json:"settle_instruction"`
-	OwnerPhone           string     `json:"owner_phone"`
-	OwnerID              string     `json:"customer_id"`
-	InterestRate         float64    `json:"interest_rate"`
-	CreationConfirmed    string     `json:"creation_confirmed"`
-	SettleConfirmed      string     `json:"settle_confirmed"`
-	Currency             string     `json:"currency"`
+	SavingsAccountID     string     `json:"savingsaccount_id,omitempty"`
+	ProductTypeName      string     `json:"product_type,omitempty"`
+	BankAccountID        string     `json:"bankaccount_id,omitempty"`
+	SavingsAmount        float64    `json:"savings_amount,omitempty"`
+	InterestAmount       float64    `json:"estimated_interest_amount,omitempty"`
+	ActualInterestAmount float64    `json:"actual_interest_amount,omitempty"`
+	StartTime            string     `json:"open_time,omitempty"`
+	EndTime              string     `json:"settle_time,omitempty"`
+	SavingsPeriod        int64      `json:"savings_period,omitempty"`
+	SettleInstruction    SettleType `json:"settle_instruction,omitempty"`
+	OwnerPhone           string     `json:"owner_phone,omitempty"`
+	OwnerID              string     `json:"customer_id,omitempty"`
+	InterestRate         float64    `json:"interest_rate,omitempty"`
+	CreationConfirmed    string     `json:"creation_confirmed,omitempty"`
+	SettleConfirmed      string     `json:"settle_confirmed,omitempty"`
+	Currency             string     `json:"currency,omitempty"`
 }

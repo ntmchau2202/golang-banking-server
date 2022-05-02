@@ -125,7 +125,7 @@ func CreateNewSavingsAccount(ctx *gin.Context) {
 	}
 
 	ctrl := controller.NewNewSavingsAccountController()
-	signature, err := ctrl.CreateNewSavingsAccount(
+	id, signature, err := ctrl.CreateNewSavingsAccount(
 		customerPhone,
 		bankAccountID,
 		savingsType,
@@ -141,7 +141,7 @@ func CreateNewSavingsAccount(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, response.CreateNewSavingsAccountSuccessResponse("new savings account created successfully, waiting for blockchain confirmation", signature))
+	ctx.JSON(http.StatusOK, response.CreateNewSavingsAccountSuccessResponse("new savings account created successfully, waiting for blockchain confirmation", signature, id))
 }
 
 func SettleSavingsAccount(ctx *gin.Context) {

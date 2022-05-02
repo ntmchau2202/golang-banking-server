@@ -2,6 +2,7 @@ package signer
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -17,10 +18,16 @@ const (
 )
 
 func NewSigner(privKey string) (s *Signer, err error) {
-	pK, err := crypto.HexToECDSA("c64a65031ae65fd012029834728af47249bca942d9653f7350f23ea83e72576f")
+	fmt.Println("Going to parse privKey:", privKey)
+	pK, err := crypto.HexToECDSA(privKey)
 	if err != nil {
 		return
 	}
+	pubKey := hexutil.Encode(crypto.FromECDSAPub(&pK.PublicKey))
+	fmt.Println("public key:", pubKey)
+	addr := crypto.Keccak256Hash(crypto.FromECDSAPub(&pK.PublicKey)).String()
+	// addr = addr[24:]
+	fmt.Println("Address:", addr)
 	s = &Signer{
 		privateKey: pK,
 	}
@@ -34,12 +41,13 @@ func (s *Signer) createMessage(msg string) (actualMsg string) {
 
 func (s *Signer) Sign(msg string) (encodedSignature string, err error) {
 	actualMsg := s.createMessage(msg)
+	fmt.Println("actual message:", actualMsg)
 	hash := crypto.Keccak256Hash([]byte(actualMsg))
-
+	fmt.Println("hash:", hash)
 	signature, err := crypto.Sign(hash.Bytes(), s.privateKey)
 	if err != nil {
 		return
 	}
-
+	fmt.Println("signature:", hexutil.Encode(signature))
 	return hexutil.Encode(signature), nil
 }

@@ -5,9 +5,9 @@ import (
 	"bankserver/entity/factory"
 	"bankserver/entity/savingsaccount"
 	"bankserver/entity/signer"
-	"bankserver/utils"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"sync"
 )
@@ -32,7 +32,7 @@ func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 	settleInstruction string,
 	currency string,
 	openTime string,
-) (signature string, err error) {
+) (savingsAccountID string, signature string, err error) {
 	// Flow: create new account and save to database first
 	// TODO: process open time here
 	savingsAccount, err := c.createNewAccount(
@@ -44,13 +44,14 @@ func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 		estimatedInterestAmount,
 		settleInstruction,
 		currency,
+		openTime,
 	)
 	if err != nil {
 		return
 	}
 	// create a json message and sign it with the bank's private key
 	// then return this to the customer
-	signer, err := signer.NewSigner("")
+	signer, err := signer.NewSigner("0ae14037ea4665f2c0042a5d15ebf3b6510965c5da80be7c681412b271537b75")
 	if err != nil {
 		return
 	}
@@ -60,8 +61,10 @@ func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 		return
 	}
 
+	fmt.Println(string(data))
+
 	signature, err = signer.Sign(string(data))
-	return
+	return savingsAccount.SavingsAccountID, signature, err
 }
 
 func (c *CreateNewSavingsAccountController) createNewAccount(
@@ -73,6 +76,7 @@ func (c *CreateNewSavingsAccountController) createNewAccount(
 	estimatedInterestAmount float64,
 	settleInstruction string,
 	currency string,
+	openTime string,
 ) (savingsAcc savingsaccount.SavingsAccount, err error) {
 	savingsProduct, err := factory.NewSavingsProductFactory().GetSavingsProductByName(savingType)
 	if err != nil {
@@ -89,16 +93,16 @@ func (c *CreateNewSavingsAccountController) createNewAccount(
 	savingsAccountIDStr := strconv.FormatInt(int64(savingsAccountID), 10)
 	mtx.Unlock()
 
-	curTime := utils.GetCurrentTimeFormatted()
+	// curTime := utils.GetCurrentTimeFormatted()
 
 	// Flow: save to DB first, then ask the blockchain to confirm
-	sAcc := savingsaccount.SavingsAccount{
+	savingsAcc = savingsaccount.SavingsAccount{
 		SavingsAccountID:  savingsAccountIDStr,
 		ProductTypeName:   savingsProduct.ProductName,
 		BankAccountID:     bankAccountID,
 		SavingsAmount:     savingsAmount,
 		InterestAmount:    estimatedInterestAmount,
-		StartTime:         curTime,
+		StartTime:         openTime,
 		SavingsPeriod:     int64(savingPeriod),
 		SettleInstruction: savingsaccount.SettleType(settleInstruction),
 		OwnerID:           cust.CustomerID,
@@ -110,7 +114,7 @@ func (c *CreateNewSavingsAccountController) createNewAccount(
 		return savingsAcc, errors.New("cannot connect to database")
 	}
 
-	err = db.SaveCreateNewSavingsAccount(sAcc)
+	err = db.SaveCreateNewSavingsAccount(savingsAcc)
 	if err != nil {
 		return savingsAcc, errors.New("cannot create new account")
 	}

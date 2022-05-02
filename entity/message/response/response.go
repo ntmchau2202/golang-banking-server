@@ -35,10 +35,11 @@ func FetchAccInfResponse(msg string, cust customer.Customer) (resp Response) {
 	return
 }
 
-func CreateNewSavingsAccountSuccessResponse(msg string, signature string) (resp Response) {
+func CreateNewSavingsAccountSuccessResponse(msg string, signature string, id string) (resp Response) {
 	var details map[string]interface{} = make(map[string]interface{})
 	details["message"] = msg
 	details["signature"] = signature
+	details["savingsaccount_id"] = id
 	resp.Stat = message.SUCCESS
 	resp.Details = details
 	return

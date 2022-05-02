@@ -38,7 +38,7 @@ func (c *SettleSavingsAccountController) SettleSavingsAccount(
 	if err != nil {
 		return "", errors.New("cannot perform authentication request to blockchain at the moment")
 	}
-	signer, err := signer.NewSigner("")
+	signer, err := signer.NewSigner("0ae14037ea4665f2c0042a5d15ebf3b6510965c5da80be7c681412b271537b75")
 	if err != nil {
 		return
 	}
