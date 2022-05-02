@@ -36,6 +36,7 @@ func main() {
 	routing.SetupFetchSavingsAccountAPI(engine)
 	routing.SetupLoginAPI(engine)
 	routing.SetupSettleSavingsAccount(engine)
+	routing.SetupTransactionConfirmation(engine)
 
 	// setup gracefull shutdown
 

@@ -48,16 +48,16 @@ func (c DatabaseConnection) SaveSettleSavingsAccount(savingsAccountID string, se
 	return c.update(sql, settleTime, actualInterestAmt, savingsAccountID)
 }
 
-func (c DatabaseConnection) SaveSavingAccountCreationConfirmationStatus(savingsAccountID string, confirmed string) (err error) {
+func (c DatabaseConnection) SaveSavingAccountCreationConfirmationStatus(savingsAccountID string, txnHash string) (err error) {
 	sql := `UPDATE savingsaccount
 			SET creation_confirmed=?
 			WHERE savingsaccount_id=?`
-	return c.update(sql, confirmed, savingsAccountID)
+	return c.update(sql, txnHash, savingsAccountID)
 }
 
-func (c DatabaseConnection) SaveSavingAccountSettleConfirmationStatus(savingsAccountID string, confirmed bool) (err error) {
+func (c DatabaseConnection) SaveSavingAccountSettleConfirmationStatus(savingsAccountID string, txnHash string) (err error) {
 	sql := `UPDATE savingsaccount
 			SET settle_confirmed=?
 			WHERE savingsaccount_id=?`
-	return c.update(sql, confirmed, savingsAccountID)
+	return c.update(sql, txnHash, savingsAccountID)
 }

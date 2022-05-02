@@ -32,7 +32,7 @@ func SetupSettleSavingsAccount(router *gin.Engine) {
 }
 
 func SetupTransactionConfirmation(router *gin.Engine) {
-	router.POST("/v1/savings/confirm", func(ctx *gin.Context) {
+	router.POST("/v1/savings/confirmation", func(ctx *gin.Context) {
 		api.ConfirmTransaction(ctx)
 	})
 }
