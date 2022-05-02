@@ -41,8 +41,13 @@ func (c *ConfirmTransactionController) SaveSettleTransaction(savingsAccountID st
 		return errors.New("invalid transaction hash")
 	}
 
-	// check savings account id
-	return
+	// save
+	db, err := database.GetDBConnection()
+	if err != nil {
+		return
+	}
+
+	return db.SaveSavingAccountSettleConfirmationStatus(savingsAccountID, txnHash)
 }
 
 func (c *ConfirmTransactionController) saveSettleTransaction(savingsAccountID string, txnHash string) (err error) {

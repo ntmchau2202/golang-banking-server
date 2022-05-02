@@ -5,6 +5,7 @@ import (
 	"bankserver/entity/message"
 	"bankserver/entity/message/request"
 	"bankserver/entity/message/response"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -156,6 +157,8 @@ func SettleSavingsAccount(ctx *gin.Context) {
 	}
 	savingsAccountID := msg.Details["savingsaccount_id"].(string)
 	customerPhone := msg.Details["customer_phone"].(string)
+	settleTime := msg.Details["settle_time"].(string)
+	actualInterestAmount := msg.Details["actual_interest_amount"].(float64)
 
 	if err = validatePhone(customerPhone); err != nil {
 		log.Panic(err)
@@ -163,14 +166,20 @@ func SettleSavingsAccount(ctx *gin.Context) {
 		return
 	}
 
-	if err = validateSavingsAccountID(savingsAccountID); err != nil {
+	// if err = validateSavingsAccountID(savingsAccountID); err != nil {
+	// 	log.Panic(err)
+	// 	ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
+	// 	return
+	// }
+
+	if err = validateTime(settleTime); err != nil {
 		log.Panic(err)
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}
 
 	ctrl := controller.NewSettleSavingsAccountController()
-	signature, err := ctrl.SettleSavingsAccount(customerPhone, savingsAccountID)
+	signature, err := ctrl.SettleSavingsAccount(customerPhone, savingsAccountID, actualInterestAmount, settleTime)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(err.Error()))
 		return
@@ -241,6 +250,7 @@ func ConfirmTransaction(ctx *gin.Context) {
 			return
 		}
 	} else if action == message.SETTLE_ONLINE_SAVINGS_ACCOUNT.ToString() {
+		fmt.Println("Going to settle it here")
 		if err := ctrl.SaveSettleTransaction(savingsAccountID, txnHash); err != nil {
 			log.Panic(err)
 			ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))

@@ -3,9 +3,7 @@ package controller
 import (
 	"bankserver/database"
 	"bankserver/entity/signer"
-	"bankserver/utils"
 	"encoding/json"
-	"errors"
 )
 
 type SettleSavingsAccountController struct {
@@ -18,32 +16,35 @@ func NewSettleSavingsAccountController() *SettleSavingsAccountController {
 func (c *SettleSavingsAccountController) SettleSavingsAccount(
 	customerPhone string,
 	savingsAccountID string,
+	actualInterestAmount float64,
+	settleTime string,
 ) (signature string, err error) {
 	// TODO: process customer phone here
 	// FLOW: save into database first
-	currentTime := utils.GetCurrentTimeFormatted()
-	err = c.settleSavingsAccount(savingsAccountID, currentTime)
+	err = c.settleSavingsAccount(savingsAccountID, actualInterestAmount, settleTime)
 	if err != nil {
 		return
-	}
-	// do something to notify to the client
-
-	// ...
-	// request to the blockchain
-	db, err := database.GetDBConnection()
-	if err != nil {
-		return "", errors.New("cannot perform authentication request to blockchain at the moment")
-	}
-	acc, err := db.GetSavingsAccountByID(savingsAccountID)
-	if err != nil {
-		return "", errors.New("cannot perform authentication request to blockchain at the moment")
 	}
 	signer, err := signer.NewSigner("0ae14037ea4665f2c0042a5d15ebf3b6510965c5da80be7c681412b271537b75")
 	if err != nil {
 		return
 	}
 
-	data, err := json.Marshal(acc)
+	type Txn struct {
+		CustomerPhone        string  `json:"customer_phone"`
+		SavingsAccountID     string  `json:"savingsaccount_id"`
+		ActualInterestAmount float64 `json:"actual_interest_amount"`
+		SettleTime           string  `json:"settle_time"`
+	}
+
+	settleTxn := Txn{
+		CustomerPhone:        customerPhone,
+		SavingsAccountID:     savingsAccountID,
+		ActualInterestAmount: actualInterestAmount,
+		SettleTime:           settleTime,
+	}
+
+	data, err := json.Marshal(settleTxn)
 	if err != nil {
 		return
 	}
@@ -54,14 +55,14 @@ func (c *SettleSavingsAccountController) SettleSavingsAccount(
 
 func (c *SettleSavingsAccountController) settleSavingsAccount(
 	savingsAccount string,
+	actualInterestAmount float64,
 	settleTime string,
 ) (err error) {
 	db, err := database.GetDBConnection()
 	if err != nil {
 		return
 	}
-	// TODO: calculate actual interest amount here
-	var actualInterestAmount float64 = 0
+
 	return db.SaveSettleSavingsAccount(savingsAccount, settleTime, actualInterestAmount, "")
 }
 
