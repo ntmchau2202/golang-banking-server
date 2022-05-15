@@ -19,7 +19,7 @@ func init() {
 	ctx, cancel = context.WithCancel(context.Background())
 	err := bankingserverinit.InitConfig("")
 	if err != nil {
-		log.Panic(err)
+		log.Println(err)
 	}
 	engine = bankingserverinit.InitEngine(bankingcoreconfig.DefaultConfig.DeployMode)
 }

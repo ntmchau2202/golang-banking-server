@@ -16,12 +16,12 @@ func ConfirmTransaction(ctx *gin.Context) {
 	var msg request.Request
 	err := ctx.ShouldBindJSON(&msg)
 	if err != nil {
-		log.Panic("error binding:", err)
+		log.Println("error binding:", err)
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("bad request"))
 		return
 	}
 	if !msg.CheckCommand(message.CONFIRM_TRANSACTION) {
-		log.Panic("command mismatch")
+		log.Println("command mismatch")
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("command mismatch"))
 		return
 	}
@@ -31,7 +31,7 @@ func ConfirmTransaction(ctx *gin.Context) {
 	action := msg.Details["action"].(string)
 
 	if action != message.CREATE_ONLINE_SAVINGS_ACCOUNT.ToString() && action != message.SETTLE_ONLINE_SAVINGS_ACCOUNT.ToString() {
-		log.Panic("invalid action")
+		log.Println("invalid action")
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("invalid action"))
 		return
 	}
@@ -39,7 +39,7 @@ func ConfirmTransaction(ctx *gin.Context) {
 	ctrl := basic.NewConfirmTransactionController()
 	if action == message.CREATE_ONLINE_SAVINGS_ACCOUNT.ToString() {
 		if err := ctrl.SaveOpenTransaction(savingsAccountID, txnHash); err != nil {
-			log.Panic(err)
+			log.Println(err)
 			ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 			return
 		} else {
@@ -49,7 +49,7 @@ func ConfirmTransaction(ctx *gin.Context) {
 	} else if action == message.SETTLE_ONLINE_SAVINGS_ACCOUNT.ToString() {
 		fmt.Println("Going to settle it here")
 		if err := ctrl.SaveSettleTransaction(savingsAccountID, txnHash); err != nil {
-			log.Panic(err)
+			log.Println(err)
 			ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 			return
 		} else {

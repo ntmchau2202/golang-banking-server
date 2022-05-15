@@ -39,7 +39,7 @@ func Login(ctx *gin.Context) {
 	ctrl := basic.NewLoginController()
 	cust, err := ctrl.Login(customerPhone, password)
 	if err != nil {
-		log.Panic("error login:", err)
+		log.Println("error login:", err)
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}

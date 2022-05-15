@@ -12,7 +12,7 @@ type Response struct {
 }
 
 func ErrorResponse(msg string) (resp Response) {
-	resp.Stat = message.SUCCESS
+	resp.Stat = message.ERROR
 	resp.Details = make(map[string]interface{})
 	resp.Details["message"] = msg
 	return
@@ -46,6 +46,15 @@ func CreateNewSavingsAccountSuccessResponse(msg string, savingsAccount savingsac
 }
 
 func SettleSavingsAccountSuccessResponse(msg string, savingsAccount savingsaccount.SavingsAccount) (resp Response) {
+	var details map[string]interface{} = make(map[string]interface{})
+	details["message"] = msg
+	details["savingsaccount"] = savingsAccount
+	resp.Stat = message.SUCCESS
+	resp.Details = details
+	return
+}
+
+func GetSavingsAccountDetailsResponse(msg string, savingsAccount savingsaccount.SavingsAccount) (resp Response) {
 	var details map[string]interface{} = make(map[string]interface{})
 	details["message"] = msg
 	details["savingsaccount"] = savingsAccount

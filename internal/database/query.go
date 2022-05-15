@@ -66,28 +66,27 @@ func (c DatabaseConnection) GetBankAccountOfCustomer(customerPhone string) (list
 		sqlB := "SELECT * FROM bankaccount WHERE bankaccount_id=$id"
 		stmB := c.dbConn.Prep(sqlB)
 		stmB.SetText("$id", stm.GetText("bankaccount_id"))
+		var acc bankaccount.BankAccount
 		for {
 			if ok, err := stmB.Step(); err != nil {
 				break
 			} else if !ok {
 				break
 			}
-		}
+			acc = bankaccount.BankAccount{
+				OwnerPhone:    customerPhone,
+				BankAccountID: stm.GetText("bankaccount_id"),
+				Balance:       stmB.GetFloat("bankaccount_balance"),
+			}
 
-		acc := bankaccount.BankAccount{
-			OwnerPhone:    customerPhone,
-			BankAccountID: stm.GetText("bankaccount_id"),
-			Balance:       stmB.GetFloat("bankaccount_balance"),
+			// query savings account
+			listSavingsAccount, err := c.GetSavingsAccountOfBankAccount(acc.BankAccountID)
+			if err != nil || len(listSavingsAccount) == 0 {
+				acc.ListSavingsAccount = []savingsaccount.SavingsAccount{}
+			}
+			acc.ListSavingsAccount = append(acc.ListSavingsAccount, listSavingsAccount...)
+			listBankAccount = append(listBankAccount, acc)
 		}
-
-		// query savings account
-		listSavingsAccount, err := c.GetSavingsAccountOfBankAccount(acc.BankAccountID)
-		if err != nil || len(listSavingsAccount) == 0 {
-			acc.ListSavingsAccount = []savingsaccount.SavingsAccount{}
-		}
-		acc.ListSavingsAccount = append(acc.ListSavingsAccount, listSavingsAccount...)
-		listBankAccount = append(listBankAccount, acc)
-
 	}
 	return
 }
@@ -204,4 +203,30 @@ func (c DatabaseConnection) GetSavingsAccountSettleConfirmStatus(savingsAccountI
 	}
 
 	return savingsAccount.SettleConfirmed, nil
+}
+
+func (c DatabaseConnection) IsAccountCreationConfirmed(savingsAccountID string) (isConfirmed bool, txnHash string, err error) {
+	sql := "SELECT creation_confirmed FROM savingsaccount WHERE savingsaccount_id=$id"
+	stm := c.dbConn.Prep(sql)
+	stm.SetText("$id", savingsAccountID)
+
+	if hasRow, err := stm.Step(); err != nil {
+		return false, "", err
+	} else if !hasRow {
+		return false, "", nil
+	}
+	return true, stm.GetText("creation_confirmed"), nil
+}
+
+func (c DatabaseConnection) IsAccountSettlementConfirmed(savingsAccountID string) (isConfirmed bool, txnHash string, err error) {
+	sql := "SELECT settle_confirmed FROM savingsaccount WHERE savingsaccount_id=$id"
+	stm := c.dbConn.Prep(sql)
+	stm.SetText("$id", savingsAccountID)
+
+	if hasRow, err := stm.Step(); err != nil {
+		return false, "", err
+	} else if !hasRow {
+		return false, "", nil
+	}
+	return true, stm.GetText("settle_confirmed"), nil
 }

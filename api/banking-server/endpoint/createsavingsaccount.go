@@ -93,6 +93,7 @@ func CreateSavingsAccount(ctx *gin.Context) {
 		bankAccountID,
 		savingsType,
 		savingsPeriod,
+		interestRate,
 		savingsAmount,
 		estimatedInterestAmount,
 		settleInstruction,
@@ -100,7 +101,7 @@ func CreateSavingsAccount(ctx *gin.Context) {
 		openTime,
 	)
 	if err != nil {
-		log.Panic("internal server error:", err)
+		log.Println("internal server error:", err)
 		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(err.Error()))
 		return
 	}

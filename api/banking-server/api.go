@@ -36,3 +36,9 @@ func SetupConfirmationAPI(router *gin.Engine) {
 		endpoint.ConfirmTransaction(ctx)
 	})
 }
+
+func SetupRequestSignature(router *gin.Engine) {
+	router.POST(bankingcoreconfig.DefaultConfig.CurrentVersion+"/savings/requestAccountInfo", func(ctx *gin.Context) {
+		endpoint.GetSavingsAccountInfo(ctx)
+	})
+}

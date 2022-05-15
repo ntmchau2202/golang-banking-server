@@ -63,7 +63,7 @@ func SetupGracefulShutdown(ctx context.Context, port string, engine *gin.Engine)
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil {
-			log.Fatal("Application failed", err)
+			log.Println("Application failed", err)
 		}
 	}()
 	log.WithFields(log.Fields{"bind": port}).Info("Running application")

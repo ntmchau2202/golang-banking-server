@@ -24,6 +24,7 @@ func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 	bankAccountID string,
 	savingType string,
 	savingPeriod int,
+	interestRate float64,
 	savingsAmount float64,
 	estimatedInterestAmount float64,
 	settleInstruction string,
@@ -38,6 +39,7 @@ func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 		bankAccountID,
 		savingType,
 		savingPeriod,
+		interestRate,
 		savingsAmount,
 		estimatedInterestAmount,
 		settleInstruction,
@@ -70,16 +72,17 @@ func (c *CreateNewSavingsAccountController) createNewAccount(
 	bankAccountID string,
 	savingType string,
 	savingPeriod int,
+	interestRate float64,
 	savingsAmount float64,
 	estimatedInterestAmount float64,
 	settleInstruction string,
 	currency string,
 	openTime string,
 ) (savingsAcc savingsaccount.SavingsAccount, err error) {
-	savingsProduct, err := factory.NewSavingsProductFactory().GetSavingsProductByName(savingType)
-	if err != nil {
-		return savingsAcc, errors.New("an error occurred when fetching product information")
-	}
+	// savingsProduct, err := factory.NewSavingsProductFactory().GetSavingsProductByName(savingType)
+	// if err != nil {
+	// 	return savingsAcc, errors.New("an error occurred when fetching product information")
+	// }
 	cust, err := factory.NewCustomerFactory().GetCustomerByPhone(customerPhone)
 	if err != nil {
 		return savingsAcc, errors.New("an error occurred when fetching customer information")
@@ -91,12 +94,10 @@ func (c *CreateNewSavingsAccountController) createNewAccount(
 	savingsAccountIDStr := strconv.FormatInt(int64(savingsAccountID), 10)
 	mtx.Unlock()
 
-	// curTime := utils.GetCurrentTimeFormatted()
-
 	// Flow: save to DB first, then ask the blockchain to confirm
 	savingsAcc = savingsaccount.SavingsAccount{
 		SavingsAccountID:  savingsAccountIDStr,
-		ProductTypeName:   savingsProduct.ProductName,
+		ProductTypeName:   savingType,
 		BankAccountID:     bankAccountID,
 		SavingsAmount:     savingsAmount,
 		InterestAmount:    estimatedInterestAmount,
@@ -104,7 +105,7 @@ func (c *CreateNewSavingsAccountController) createNewAccount(
 		SavingsPeriod:     int64(savingPeriod),
 		SettleInstruction: savingsaccount.SettleType(settleInstruction),
 		OwnerID:           cust.CustomerID,
-		InterestRate:      savingsProduct.InterestRate[savingPeriod],
+		InterestRate:      interestRate,
 		Currency:          currency,
 	}
 	db, err := database.GetDBConnection()
@@ -117,7 +118,20 @@ func (c *CreateNewSavingsAccountController) createNewAccount(
 		return savingsAcc, errors.New("cannot create new account")
 	}
 	savingsAcc.SavingsAccountID = savingsAccountIDStr
-	return savingsAcc, nil
+
+	// update account balance here
+	// calculate new balance
+	var currentBankAccountBalance float64 = 0
+	for _, acc := range cust.BankAccounts {
+		if acc.BankAccountID == bankAccountID {
+			currentBankAccountBalance = acc.Balance
+			break
+		}
+	}
+
+	newBankAccountBalance := currentBankAccountBalance - savingsAmount
+	err = db.UpdateAccountBalance(bankAccountID, newBankAccountBalance)
+	return savingsAcc, err
 }
 
 // func (c *CreateNewSavingsAccountController) requestCreationConfirmation(

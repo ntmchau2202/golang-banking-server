@@ -28,19 +28,19 @@ func SettleSavingsAccount(ctx *gin.Context) {
 	actualInterestAmount := msg.Details["actual_interest_amount"].(float64)
 
 	if err = validatePhone(customerPhone); err != nil {
-		log.Panic(err)
+		log.Println(err)
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}
 
-	// if err = validateSavingsAccountID(savingsAccountID); err != nil {
-	// 	log.Panic(err)
-	// 	ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
-	// 	return
-	// }
+	if err = validateSavingsAccountID(savingsAccountID); err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
+		return
+	}
 
 	if err = validateTime(settleTime); err != nil {
-		log.Panic(err)
+		log.Println(err)
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}

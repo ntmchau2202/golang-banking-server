@@ -33,7 +33,14 @@ func (c *ConfirmTransactionController) saveOpenTransaction(savingsAccountID stri
 		return
 	}
 
-	return db.SaveSavingAccountCreationConfirmationStatus(savingsAccountID, txnHash)
+	if confirmed, savedTxnHash, err := db.IsAccountCreationConfirmed(savingsAccountID); err != nil {
+		return err
+	} else if !confirmed {
+		return db.SaveSavingAccountCreationConfirmationStatus(savingsAccountID, txnHash)
+	} else {
+		return errors.New("transaction has already been confirmed with txn hash " + savedTxnHash)
+	}
+
 }
 
 func (c *ConfirmTransactionController) SaveSettleTransaction(savingsAccountID string, txnHash string) (err error) {
@@ -47,7 +54,13 @@ func (c *ConfirmTransactionController) SaveSettleTransaction(savingsAccountID st
 		return
 	}
 
-	return db.SaveSavingAccountSettleConfirmationStatus(savingsAccountID, txnHash)
+	if confirmed, savedTxnHash, err := db.IsAccountSettlementConfirmed(savingsAccountID); err != nil {
+		return err
+	} else if !confirmed {
+		return db.SaveSavingAccountSettleConfirmationStatus(savingsAccountID, txnHash)
+	} else {
+		return errors.New("transaction has already been confirmed with txn hash " + savedTxnHash)
+	}
 }
 
 func (c *ConfirmTransactionController) saveSettleTransaction(savingsAccountID string, txnHash string) (err error) {

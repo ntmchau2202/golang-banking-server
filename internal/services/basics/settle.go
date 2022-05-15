@@ -69,7 +69,21 @@ func (c *SettleSavingsAccountController) settleSavingsAccount(
 		return
 	}
 
-	return db.GetSavingsAccountByID(savingsAccount)
+	sAcc, err = db.GetSavingsAccountByID(savingsAccount)
+	if err != nil {
+		return
+	}
+
+	targetBankAccount, err := db.GetBankAccountByID(sAcc.BankAccountID)
+	if err != nil {
+		return
+	}
+
+	newBalance := targetBankAccount.Balance + actualInterestAmount + sAcc.SavingsAmount
+
+	err = db.UpdateAccountBalance(targetBankAccount.BankAccountID, newBalance)
+	err = db.AddSavingsAccountToBankAccount(sAcc.SavingsAccountID, targetBankAccount.BankAccountID)
+	return sAcc, err
 }
 
 // func (c *SettleSavingsAccountController) requestSettleConfirmation(
