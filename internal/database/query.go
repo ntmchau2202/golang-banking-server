@@ -106,6 +106,8 @@ func (c DatabaseConnection) GetSavingsAccountOfBankAccount(bankAccountID string)
 		savingsaccountID := stm.GetText("savingsaccount_id")
 		fmt.Println("Get one savingaccountID:", savingsaccountID)
 		savingsAcc, err := c.GetSavingsAccountByID(savingsaccountID)
+		savingsAcc.BankAccountID = bankAccountID
+		fmt.Println(savingsAcc.BankAccountID)
 		if err != nil {
 			continue
 		}
@@ -116,8 +118,20 @@ func (c DatabaseConnection) GetSavingsAccountOfBankAccount(bankAccountID string)
 
 // OK
 func (c DatabaseConnection) GetSavingsAccountByID(savingsID string) (acc savingsaccount.SavingsAccount, err error) {
-	sql := "SELECT * FROM savingsaccount WHERE savingsaccount_id=$id"
+	sql := "SELECT bankaccount_id FROM bankaccount_savingsaccount WHERE savingsaccount_id=$id"
 	stm := c.dbConn.Prep(sql)
+	stm.SetText("$id", savingsID)
+
+	if hasRow, err := stm.Step(); err != nil {
+		return acc, err
+	} else if !hasRow {
+		return acc, errors.New("savings account does not associate with any bank account")
+	}
+
+	acc.BankAccountID = stm.GetText("bankaccount_id")
+
+	sql = "SELECT * FROM savingsaccount WHERE savingsaccount_id=$id"
+	stm = c.dbConn.Prep(sql)
 	stm.SetText("$id", savingsID)
 	if hasRow, err := stm.Step(); err != nil {
 		return acc, err
@@ -129,13 +143,16 @@ func (c DatabaseConnection) GetSavingsAccountByID(savingsID string) (acc savings
 	acc.SavingsPeriod = stm.GetInt64("period")
 	acc.InterestRate = stm.GetFloat("interest_rate")
 	acc.InterestAmount = stm.GetFloat("interest_amount")
+	acc.ActualInterestAmount = stm.GetFloat("actual_interest_amount")
 	acc.EndTime = stm.GetText("settle_time")
 	acc.StartTime = stm.GetText("open_time")
-	// TODO: get product type here
+	acc.ProductTypeName = stm.GetText("type")
 	acc.CreationConfirmed = stm.GetText("creation_confirmed")
 	acc.SettleConfirmed = stm.GetText("settle_confirmed")
 	acc.Currency = stm.GetText("currency")
 	acc.SettleInstruction = savingsaccount.SettleType(stm.GetText("settle_instruction"))
+	acc.ConfirmStatus = stm.GetInt64("status")
+
 	return
 }
 
@@ -213,6 +230,8 @@ func (c DatabaseConnection) IsAccountCreationConfirmed(savingsAccountID string) 
 	if hasRow, err := stm.Step(); err != nil {
 		return false, "", err
 	} else if !hasRow {
+		return false, "", errors.New("no records for this savings account found")
+	} else if len(stm.GetText("creation_confirmed")) == 0 {
 		return false, "", nil
 	}
 	return true, stm.GetText("creation_confirmed"), nil
@@ -226,6 +245,8 @@ func (c DatabaseConnection) IsAccountSettlementConfirmed(savingsAccountID string
 	if hasRow, err := stm.Step(); err != nil {
 		return false, "", err
 	} else if !hasRow {
+		return false, "", errors.New("no records for this savings account found")
+	} else if len(stm.GetText("settle_confirmed")) == 0 {
 		return false, "", nil
 	}
 	return true, stm.GetText("settle_confirmed"), nil

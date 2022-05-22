@@ -26,6 +26,10 @@ func CreateSavingsAccount(ctx *gin.Context) {
 
 	customerPhone := msg.Details["customer_phone"].(string)
 	bankAccountID := msg.Details["bankaccount_id"].(string)
+	var savingsAccountID string = ""
+	if value, ok := msg.Details["savingsaccount_id"].(string); ok {
+		savingsAccountID = value
+	}
 	savingsType := msg.Details["product_type"].(string)
 	savingsPeriod := int(msg.Details["savings_period"].(float64))
 	savingsAmount := msg.Details["savings_amount"].(float64)
@@ -91,6 +95,7 @@ func CreateSavingsAccount(ctx *gin.Context) {
 	account, err := ctrl.CreateNewSavingsAccount(
 		customerPhone,
 		bankAccountID,
+		savingsAccountID,
 		savingsType,
 		savingsPeriod,
 		interestRate,

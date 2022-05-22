@@ -22,6 +22,7 @@ func NewNewSavingsAccountController() (c *CreateNewSavingsAccountController) {
 func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 	customerPhone string,
 	bankAccountID string,
+	savingsAccountID string,
 	savingType string,
 	savingPeriod int,
 	interestRate float64,
@@ -37,6 +38,7 @@ func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 	return c.createNewAccount(
 		customerPhone,
 		bankAccountID,
+		savingsAccountID,
 		savingType,
 		savingPeriod,
 		interestRate,
@@ -70,6 +72,7 @@ func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 func (c *CreateNewSavingsAccountController) createNewAccount(
 	customerPhone string,
 	bankAccountID string,
+	currentSavingsAccountID string,
 	savingType string,
 	savingPeriod int,
 	interestRate float64,
@@ -88,15 +91,7 @@ func (c *CreateNewSavingsAccountController) createNewAccount(
 		return savingsAcc, errors.New("an error occurred when fetching customer information")
 	}
 
-	mtx.Lock()
-	savingsAccountID++
-	// TODO: create proper savings account id here
-	savingsAccountIDStr := strconv.FormatInt(int64(savingsAccountID), 10)
-	mtx.Unlock()
-
-	// Flow: save to DB first, then ask the blockchain to confirm
 	savingsAcc = savingsaccount.SavingsAccount{
-		SavingsAccountID:  savingsAccountIDStr,
 		ProductTypeName:   savingType,
 		BankAccountID:     bankAccountID,
 		SavingsAmount:     savingsAmount,
@@ -108,29 +103,47 @@ func (c *CreateNewSavingsAccountController) createNewAccount(
 		InterestRate:      interestRate,
 		Currency:          currency,
 	}
-	db, err := database.GetDBConnection()
-	if err != nil {
-		return savingsAcc, errors.New("cannot connect to database")
+	var needUpdate bool = false
+	if len(currentSavingsAccountID) == 0 {
+		mtx.Lock()
+		savingsAccountID++
+		// TODO: create proper savings account id here
+		savingsAccountIDStr := strconv.FormatInt(int64(savingsAccountID), 10)
+		mtx.Unlock()
+		currentSavingsAccountID = savingsAccountIDStr
+		needUpdate = true
 	}
 
-	err = db.SaveCreateNewSavingsAccount(savingsAcc)
-	if err != nil {
-		return savingsAcc, errors.New("cannot create new account")
-	}
-	savingsAcc.SavingsAccountID = savingsAccountIDStr
-
-	// update account balance here
-	// calculate new balance
-	var currentBankAccountBalance float64 = 0
-	for _, acc := range cust.BankAccounts {
-		if acc.BankAccountID == bankAccountID {
-			currentBankAccountBalance = acc.Balance
-			break
+	savingsAcc.SavingsAccountID = currentSavingsAccountID
+	if needUpdate {
+		db, err := database.GetDBConnection()
+		if err != nil {
+			return savingsAcc, errors.New("cannot connect to database")
 		}
+
+		err = db.SaveCreateNewSavingsAccount(savingsAcc)
+		if err != nil {
+			return savingsAcc, errors.New("cannot create new account")
+		}
+		// update account balance here
+		// calculate new balance
+		var currentBankAccountBalance float64 = 0
+		for _, acc := range cust.BankAccounts {
+			if acc.BankAccountID == bankAccountID {
+				currentBankAccountBalance = acc.Balance
+				break
+			}
+		}
+
+		newBankAccountBalance := currentBankAccountBalance - savingsAmount
+		err = db.UpdateAccountBalance(bankAccountID, newBankAccountBalance)
+		targetBankAccount, err := db.GetBankAccountByID(savingsAcc.BankAccountID)
+		if err != nil {
+			return savingsAcc, err
+		}
+		err = db.AddSavingsAccountToBankAccount(savingsAcc.SavingsAccountID, targetBankAccount.BankAccountID)
 	}
 
-	newBankAccountBalance := currentBankAccountBalance - savingsAmount
-	err = db.UpdateAccountBalance(bankAccountID, newBankAccountBalance)
 	return savingsAcc, err
 }
 

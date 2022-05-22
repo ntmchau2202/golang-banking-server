@@ -5,6 +5,7 @@ import (
 	"core-banking-server/internal/models/message/request"
 	"core-banking-server/internal/models/message/response"
 	basic "core-banking-server/internal/services/basics"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -48,6 +49,7 @@ func SettleSavingsAccount(ctx *gin.Context) {
 	ctrl := basic.NewSettleSavingsAccountController()
 	account, err := ctrl.SettleSavingsAccount(customerPhone, savingsAccountID, actualInterestAmount, settleTime)
 	if err != nil {
+		fmt.Println("error settling:", err)
 		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(err.Error()))
 		return
 	}

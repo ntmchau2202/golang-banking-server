@@ -64,51 +64,26 @@ func (c *SettleSavingsAccountController) settleSavingsAccount(
 		return
 	}
 
-	err = db.SaveSettleSavingsAccount(savingsAccount, settleTime, actualInterestAmount, "")
-	if err != nil {
-		return
-	}
-
 	sAcc, err = db.GetSavingsAccountByID(savingsAccount)
 	if err != nil {
 		return
 	}
 
-	targetBankAccount, err := db.GetBankAccountByID(sAcc.BankAccountID)
-	if err != nil {
-		return
+	if sAcc.ActualInterestAmount == 0 {
+		err = db.SaveSettleSavingsAccount(savingsAccount, settleTime, actualInterestAmount, "")
+		if err != nil {
+			return
+		}
+
+		targetBankAccount, err := db.GetBankAccountByID(sAcc.BankAccountID)
+		if err != nil {
+			return sAcc, err
+		}
+
+		newBalance := targetBankAccount.Balance + actualInterestAmount + sAcc.SavingsAmount
+
+		err = db.UpdateAccountBalance(targetBankAccount.BankAccountID, newBalance)
+
 	}
-
-	newBalance := targetBankAccount.Balance + actualInterestAmount + sAcc.SavingsAmount
-
-	err = db.UpdateAccountBalance(targetBankAccount.BankAccountID, newBalance)
-	err = db.AddSavingsAccountToBankAccount(sAcc.SavingsAccountID, targetBankAccount.BankAccountID)
 	return sAcc, err
 }
-
-// func (c *SettleSavingsAccountController) requestSettleConfirmation(
-// 	savingsAccountID string,
-// 	ownerID string,
-// 	ownerPhone string,
-// 	settleTime string,
-// 	actualInterestAmount float64,
-// ) (result response.Response, err error) {
-// 	// TODO: hey i forgot the link to the blockchain server :)
-// 	var details map[string]interface{} = make(map[string]interface{})
-// 	details["savingsaccount_id"] = savingsAccountID
-// 	details["owner_id"] = ownerID
-// 	details["owner_phone"] = ownerPhone
-// 	details["actual_interest_amout"] = strconv.FormatFloat(actualInterestAmount, 'f', -1, 64)
-// 	details["settle_time"] = settleTime
-
-// 	msg := request.Request{
-// 		Cmd:     message.SETTLE_ONLINE_SAVINGS_ACCOUNT,
-// 		Details: details,
-// 	}
-// 	newClient := client.NewClient("")
-// 	result, err = newClient.POST("", msg)
-// 	if err != nil {
-// 		return
-// 	}
-// 	return
-// }

@@ -25,4 +25,9 @@ type SavingsAccount struct {
 	CreationConfirmed    string     `json:"creation_confirmed,omitempty"`
 	SettleConfirmed      string     `json:"settle_confirmed,omitempty"`
 	Currency             string     `json:"currency,omitempty"`
+	// 1 for creation successfully, pending creation confirmation
+	// 2 for creation confirmed, pending settle
+	// 3 for settle successfully, pending settle confirmation
+	// 4 for settle confirmed
+	ConfirmStatus int64 `json:"confirm_status,omitempty"`
 }
