@@ -5,6 +5,7 @@ import (
 	"core-banking-server/internal/models/message/request"
 	"core-banking-server/internal/models/message/response"
 	basic "core-banking-server/internal/services/basics"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,11 +24,13 @@ func GetSavingsAccountInfo(ctx *gin.Context) {
 	var msg request.Request
 	err := ctx.ShouldBindJSON(&msg)
 	if err != nil {
+		fmt.Println("Error binding json:", err)
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}
 
 	if !msg.CheckCommand(message.REQUEST_SIGNATURE) {
+		fmt.Println("command mismatch:", err)
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("command mismatch"))
 		return
 	}
@@ -37,7 +40,8 @@ func GetSavingsAccountInfo(ctx *gin.Context) {
 
 	savingsAccount, err := basic.NewGetSavingsAccountDetailsController().GetSavingsAccountByID(customerPhone, savingsAccountID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("command mismatch"))
+		fmt.Println("error getting savings account")
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}
 

@@ -46,6 +46,7 @@ func SetupAPIs(router *gin.Engine) {
 	bankingapi.SetupFetchAccountInfoAPI(router)
 	bankingapi.SetupLoginAPI(router)
 	bankingapi.SetupConfirmationAPI(router)
+	bankingapi.SetupRequestSignature(router)
 }
 
 func SetupGracefulShutdown(ctx context.Context, port string, engine *gin.Engine) {
