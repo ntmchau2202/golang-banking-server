@@ -14,14 +14,14 @@ func NewConfirmTransactionController() *ConfirmTransactionController {
 	return &ConfirmTransactionController{}
 }
 
-func (c *ConfirmTransactionController) SaveOpenTransaction(savingsAccountID string, txnHash string) (err error) {
+func (c *ConfirmTransactionController) SaveOpenTransaction(savingsAccountID string, txnHash string, ipfsHash string) (err error) {
 	if !strings.HasPrefix(txnHash, "0x") {
 		return errors.New("invalid transaction hash")
 	}
-	return c.saveOpenTransaction(savingsAccountID, txnHash)
+	return c.saveOpenTransaction(savingsAccountID, txnHash, ipfsHash)
 }
 
-func (c *ConfirmTransactionController) saveOpenTransaction(savingsAccountID string, txnHash string) (err error) {
+func (c *ConfirmTransactionController) saveOpenTransaction(savingsAccountID string, txnHash string, ipfsHash string) (err error) {
 	_, err = factory.NewSavingsAccountFactory().GetSavingsAccountByID(savingsAccountID)
 	if err != nil {
 		return err
@@ -36,14 +36,14 @@ func (c *ConfirmTransactionController) saveOpenTransaction(savingsAccountID stri
 	if confirmed, savedTxnHash, err := db.IsAccountCreationConfirmed(savingsAccountID); err != nil {
 		return err
 	} else if !confirmed {
-		return db.SaveSavingAccountCreationConfirmationStatus(savingsAccountID, txnHash)
+		return db.SaveSavingAccountCreationConfirmationStatus(savingsAccountID, txnHash, ipfsHash)
 	} else {
 		return errors.New("transaction has already been confirmed with txn hash " + savedTxnHash)
 	}
 
 }
 
-func (c *ConfirmTransactionController) SaveSettleTransaction(savingsAccountID string, txnHash string) (err error) {
+func (c *ConfirmTransactionController) SaveSettleTransaction(savingsAccountID string, txnHash string, ipfsHash string) (err error) {
 	if !strings.HasPrefix(txnHash, "0x") {
 		return errors.New("invalid transaction hash")
 	}
@@ -57,13 +57,13 @@ func (c *ConfirmTransactionController) SaveSettleTransaction(savingsAccountID st
 	if confirmed, savedTxnHash, err := db.IsAccountSettlementConfirmed(savingsAccountID); err != nil {
 		return err
 	} else if !confirmed {
-		return db.SaveSavingAccountSettleConfirmationStatus(savingsAccountID, txnHash)
+		return db.SaveSavingAccountSettleConfirmationStatus(savingsAccountID, txnHash, ipfsHash)
 	} else {
 		return errors.New("transaction has already been confirmed with txn hash " + savedTxnHash)
 	}
 }
 
-func (c *ConfirmTransactionController) saveSettleTransaction(savingsAccountID string, txnHash string) (err error) {
+func (c *ConfirmTransactionController) saveSettleTransaction(savingsAccountID string, txnHash string, ipfsHash string) (err error) {
 	_, err = factory.NewSavingsAccountFactory().GetSavingsAccountByID(savingsAccountID)
 	if err != nil {
 		return err
@@ -75,5 +75,5 @@ func (c *ConfirmTransactionController) saveSettleTransaction(savingsAccountID st
 		return
 	}
 
-	return db.SaveSavingAccountSettleConfirmationStatus(savingsAccountID, txnHash)
+	return db.SaveSavingAccountSettleConfirmationStatus(savingsAccountID, txnHash, ipfsHash)
 }

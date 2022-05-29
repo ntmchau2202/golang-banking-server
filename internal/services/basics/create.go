@@ -32,10 +32,10 @@ func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 	currency string,
 	openTime string,
 	// ) (savingsAccountID string, signature string, err error) {
-) (savingsAccount savingsaccount.SavingsAccount, err error) {
+) (savingsAccount savingsaccount.SavingsAccount, customerPublicKey string, err error) {
 	// Flow: create new account and save to database first
 	// TODO: process open time here
-	return c.createNewAccount(
+	savingsAccount, err = c.createNewAccount(
 		customerPhone,
 		bankAccountID,
 		savingsAccountID,
@@ -48,25 +48,19 @@ func (c *CreateNewSavingsAccountController) CreateNewSavingsAccount(
 		currency,
 		openTime,
 	)
-	// if err != nil {
-	// 	return
-	// }
-	// create a json message and sign it with the bank's private key
-	// then return this to the customer
-	// signer, err := signer.NewSigner("0ae14037ea4665f2c0042a5d15ebf3b6510965c5da80be7c681412b271537b75")
-	// if err != nil {
-	// 	return
-	// }
+	if err != nil {
+		return
+	}
+	customerPublicKey, err = c.getCustomerPublicKey(customerPhone)
+	return
+}
 
-	// data, err := json.Marshal(savingsAccount)
-	// if err != nil {
-	// 	return
-	// }
-
-	// fmt.Println(string(data))
-
-	// signature, err = signer.Sign(string(data))
-	// return savingsAccount.SavingsAccountID, signature, err
+func (c *CreateNewSavingsAccountController) getCustomerPublicKey(customerPhone string) (key string, err error) {
+	cust, err := factory.NewCustomerFactory().GetCustomerByPhone(customerPhone)
+	if err != nil {
+		return
+	}
+	return cust.CustomerPublicKey, nil
 }
 
 func (c *CreateNewSavingsAccountController) createNewAccount(

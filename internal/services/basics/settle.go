@@ -2,6 +2,7 @@ package basic
 
 import (
 	"core-banking-server/internal/database"
+	"core-banking-server/internal/factory"
 	"core-banking-server/internal/models/savingsaccount"
 )
 
@@ -17,41 +18,24 @@ func (c *SettleSavingsAccountController) SettleSavingsAccount(
 	savingsAccountID string,
 	actualInterestAmount float64,
 	settleTime string,
-) (savingsAccount savingsaccount.SavingsAccount, err error) {
+) (savingsAccount savingsaccount.SavingsAccount, publicKey string, err error) {
 	// TODO: process customer phone here
 	// FLOW: save into database first
 
-	return c.settleSavingsAccount(savingsAccountID, actualInterestAmount, settleTime)
-	// if err != nil {
-	// 	return
-	// }
+	savingsAccount, err = c.settleSavingsAccount(savingsAccountID, actualInterestAmount, settleTime)
+	if err != nil {
+		return
+	}
+	publicKey, err = c.getCustomerPublicKey(customerPhone)
+	return
+}
 
-	// signer, err := signer.NewSigner("0ae14037ea4665f2c0042a5d15ebf3b6510965c5da80be7c681412b271537b75")
-	// if err != nil {
-	// 	return
-	// }
-
-	// type Txn struct {
-	// 	CustomerPhone        string  `json:"customer_phone"`
-	// 	SavingsAccountID     string  `json:"savingsaccount_id"`
-	// 	ActualInterestAmount float64 `json:"actual_interest_amount"`
-	// 	SettleTime           string  `json:"settle_time"`
-	// }
-
-	// settleTxn := Txn{
-	// 	CustomerPhone:        customerPhone,
-	// 	SavingsAccountID:     savingsAccountID,
-	// 	ActualInterestAmount: actualInterestAmount,
-	// 	SettleTime:           settleTime,
-	// }
-
-	// data, err := json.Marshal(settleTxn)
-	// if err != nil {
-	// 	return
-	// }
-
-	// signature, err = signer.Sign(string(data))
-	// return
+func (c *SettleSavingsAccountController) getCustomerPublicKey(customerPhone string) (key string, err error) {
+	cust, err := factory.NewCustomerFactory().GetCustomerByPhone(customerPhone)
+	if err != nil {
+		return
+	}
+	return cust.CustomerPublicKey, nil
 }
 
 func (c *SettleSavingsAccountController) settleSavingsAccount(

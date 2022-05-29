@@ -42,3 +42,9 @@ func SetupRequestSignature(router *gin.Engine) {
 		endpoint.GetSavingsAccountInfo(ctx)
 	})
 }
+
+func SetupRegisterBlockchainService(router *gin.Engine) {
+	router.POST(bankingcoreconfig.DefaultConfig.CurrentVersion+"/account/registerBlockchainService", func(ctx *gin.Context) {
+		endpoint.SaveCustomerPublicKey(ctx)
+	})
+}

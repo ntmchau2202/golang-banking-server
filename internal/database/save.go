@@ -58,24 +58,40 @@ func (c DatabaseConnection) UpdateAccountBalance(bankAccountID string, newBalanc
 	return c.update(sql, newBalance, bankAccountID)
 }
 
-func (c DatabaseConnection) SaveSavingAccountCreationConfirmationStatus(savingsAccountID string, txnHash string) (err error) {
+func (c DatabaseConnection) SaveSavingAccountCreationConfirmationStatus(savingsAccountID string, txnHash string, ipfsHash string) (err error) {
 	sql := `UPDATE savingsaccount
 			SET creation_confirmed=?,
-				status=?
+				status=?,
+				open_ipfs_receipt_hash=?
 			WHERE savingsaccount_id=?`
-	return c.update(sql, txnHash, 2, savingsAccountID)
+	return c.update(sql, txnHash, 2, ipfsHash, savingsAccountID)
 }
 
-func (c DatabaseConnection) SaveSavingAccountSettleConfirmationStatus(savingsAccountID string, txnHash string) (err error) {
+func (c DatabaseConnection) SaveSavingAccountSettleConfirmationStatus(savingsAccountID string, txnHash string, ipfsHash string) (err error) {
 	sql := `UPDATE savingsaccount
 			SET settle_confirmed=?,
-				status=?
+				status=?,
+				settle_ipfs_receipt_hash=?
 			WHERE savingsaccount_id=?`
-	return c.update(sql, txnHash, 4, savingsAccountID)
+	return c.update(sql, txnHash, 4, ipfsHash, savingsAccountID)
 }
 
 func (c DatabaseConnection) AddSavingsAccountToBankAccount(savingsAccountID, bankAccountID string) (err error) {
 	sql := `INSERT INTO bankaccount_savingsaccount (bankaccount_id, savingsaccount_id)
 			VALUES (?, ?)`
 	return c.insert(sql, bankAccountID, savingsAccountID)
+}
+
+func (c DatabaseConnection) AddCustomerPublicEncryptionKey(customerPhone, publicKey string) (err error) {
+	sql := `UPDATE customer
+			SET public_key=?
+			WHERE customer_id=?`
+	return c.update(sql, publicKey, customerPhone)
+}
+
+func (c DatabaseConnection) RemoveCustomerPublicEncryptionKey(customerPhone string) (err error) {
+	sql := `UPDATE customer
+			SET public_key=""
+			WHERE customer_id=?`
+	return c.update(sql, customerPhone)
 }

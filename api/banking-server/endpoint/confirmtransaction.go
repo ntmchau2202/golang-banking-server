@@ -29,6 +29,7 @@ func ConfirmTransaction(ctx *gin.Context) {
 	txnHash := msg.Details["txn_hash"].(string)
 	savingsAccountID := msg.Details["savingsaccount_id"].(string)
 	action := msg.Details["action"].(string)
+	ipfsHash := msg.Details["receipt"].(string)
 
 	if action != message.CREATE_ONLINE_SAVINGS_ACCOUNT.ToString() && action != message.SETTLE_ONLINE_SAVINGS_ACCOUNT.ToString() {
 		log.Println("invalid action")
@@ -38,7 +39,7 @@ func ConfirmTransaction(ctx *gin.Context) {
 
 	ctrl := basic.NewConfirmTransactionController()
 	if action == message.CREATE_ONLINE_SAVINGS_ACCOUNT.ToString() {
-		if err := ctrl.SaveOpenTransaction(savingsAccountID, txnHash); err != nil {
+		if err := ctrl.SaveOpenTransaction(savingsAccountID, txnHash, ipfsHash); err != nil {
 			log.Println(err)
 			ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 			return
@@ -48,7 +49,7 @@ func ConfirmTransaction(ctx *gin.Context) {
 		}
 	} else if action == message.SETTLE_ONLINE_SAVINGS_ACCOUNT.ToString() {
 		fmt.Println("Going to settle it here")
-		if err := ctrl.SaveSettleTransaction(savingsAccountID, txnHash); err != nil {
+		if err := ctrl.SaveSettleTransaction(savingsAccountID, txnHash, ipfsHash); err != nil {
 			log.Println(err)
 			ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 			return

@@ -47,11 +47,11 @@ func SettleSavingsAccount(ctx *gin.Context) {
 	}
 
 	ctrl := basic.NewSettleSavingsAccountController()
-	account, err := ctrl.SettleSavingsAccount(customerPhone, savingsAccountID, actualInterestAmount, settleTime)
+	account, publicKey, err := ctrl.SettleSavingsAccount(customerPhone, savingsAccountID, actualInterestAmount, settleTime)
 	if err != nil {
 		fmt.Println("error settling:", err)
 		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(err.Error()))
 		return
 	}
-	ctx.JSON(http.StatusOK, response.SettleSavingsAccountSuccessResponse("settle savings account successfully, waiting for blockchain confirmation", account))
+	ctx.JSON(http.StatusOK, response.SettleSavingsAccountSuccessResponse("settle savings account successfully, waiting for blockchain confirmation", account, publicKey))
 }

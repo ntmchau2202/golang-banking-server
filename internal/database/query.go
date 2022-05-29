@@ -23,6 +23,20 @@ func (c DatabaseConnection) GetCustomerLoginInfo(customerPhone string) (pwd stri
 	return
 }
 
+func (c DatabaseConnection) GetcustomerByID(id string) (cust customer.Customer, err error) {
+	sql := "SELECT * FROM customer WHERE customer_id=$id"
+	stm := c.dbConn.Prep(sql)
+	stm.SetText("$id", id)
+	if hasRow, err := stm.Step(); err != nil {
+		return cust, err
+	} else if !hasRow {
+		return cust, errors.New("no customer found")
+	}
+
+	phone := stm.GetText("customer_phone")
+	return c.GetCustomerByPhone(phone)
+}
+
 // OK
 func (c DatabaseConnection) GetCustomerByPhone(phone string) (cust customer.Customer, err error) {
 	sql := "SELECT * FROM customer WHERE customer_phone=$phone"
@@ -38,6 +52,7 @@ func (c DatabaseConnection) GetCustomerByPhone(phone string) (cust customer.Cust
 	cust.CustomerPhone = stm.GetText("customer_phone")
 	cust.CustomerID = stm.GetText("customer_id")
 	cust.CustomerName = stm.GetText("customer_name")
+	cust.CustomerPublicKey = stm.GetText("public_key")
 
 	bankAccounts, err := c.GetBankAccountOfCustomer(cust.CustomerPhone)
 	if err != nil {
@@ -250,4 +265,12 @@ func (c DatabaseConnection) IsAccountSettlementConfirmed(savingsAccountID string
 		return false, "", nil
 	}
 	return true, stm.GetText("settle_confirmed"), nil
+}
+
+func (c DatabaseConnection) GetCustomerPublicKey(customerID string) (publicKey string, err error) {
+	cust, err := c.GetcustomerByID(customerID)
+	if err != nil {
+		return
+	}
+	return cust.CustomerPublicKey, nil
 }
