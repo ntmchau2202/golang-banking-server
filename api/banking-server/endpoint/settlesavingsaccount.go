@@ -34,11 +34,11 @@ func SettleSavingsAccount(ctx *gin.Context) {
 		return
 	}
 
-	if err = validateSavingsAccountID(savingsAccountID); err != nil {
-		log.Println(err)
-		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
-		return
-	}
+	// if err = validateSavingsAccountID(savingsAccountID); err != nil {
+	// 	log.Println(err)
+	// 	ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
+	// 	return
+	// }
 
 	if err = validateTime(settleTime); err != nil {
 		log.Println(err)

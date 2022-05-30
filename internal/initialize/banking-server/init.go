@@ -47,6 +47,7 @@ func SetupAPIs(router *gin.Engine) {
 	bankingapi.SetupLoginAPI(router)
 	bankingapi.SetupConfirmationAPI(router)
 	bankingapi.SetupRequestSignature(router)
+	bankingapi.SetupRegisterBlockchainService(router)
 }
 
 func SetupGracefulShutdown(ctx context.Context, port string, engine *gin.Engine) {
