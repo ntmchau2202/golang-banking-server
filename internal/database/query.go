@@ -53,6 +53,7 @@ func (c DatabaseConnection) GetCustomerByPhone(phone string) (cust customer.Cust
 	cust.CustomerID = stm.GetText("customer_id")
 	cust.CustomerName = stm.GetText("customer_name")
 	cust.CustomerPublicKey = stm.GetText("public_key")
+	cust.ActiveStatus = stm.GetBool("active_status")
 
 	bankAccounts, err := c.GetBankAccountOfCustomer(cust.CustomerPhone)
 	if err != nil {
@@ -167,6 +168,8 @@ func (c DatabaseConnection) GetSavingsAccountByID(savingsID string) (acc savings
 	acc.Currency = stm.GetText("currency")
 	acc.SettleInstruction = savingsaccount.SettleType(stm.GetText("settle_instruction"))
 	acc.ConfirmStatus = stm.GetInt64("status")
+	acc.IPFSOpen = stm.GetText("open_ipfs_receipt_hash")
+	acc.IPFSSettle = stm.GetText("settle_ipfs_receipt_hash")
 
 	return
 }
@@ -273,4 +276,68 @@ func (c DatabaseConnection) GetCustomerPublicKey(customerID string) (publicKey s
 		return
 	}
 	return cust.CustomerPublicKey, nil
+}
+
+func (c DatabaseConnection) GetAllCustomer() (customerList []customer.Customer, err error) {
+	sql := `SELECT * FROM customer`
+	stm := c.dbConn.Prep(sql)
+	for {
+		if hasRow, err := stm.Step(); err != nil {
+			return customerList, err
+		} else if !hasRow {
+			break
+		}
+		var cust customer.Customer
+		// create customer instance here
+		cust.CustomerType = stm.GetText("customer_type")
+		cust.CustomerPhone = stm.GetText("customer_phone")
+		cust.CustomerID = stm.GetText("customer_id")
+		cust.CustomerName = stm.GetText("customer_name")
+		cust.CustomerPublicKey = stm.GetText("public_key")
+		cust.ActiveStatus = stm.GetBool("active_status")
+		bankAccounts, err := c.GetBankAccountOfCustomer(cust.CustomerPhone)
+		if err != nil {
+			err = nil
+			continue
+		}
+		if len(bankAccounts) == 0 {
+			cust.BankAccounts = []bankaccount.BankAccount{}
+		} else {
+			cust.BankAccounts = append(cust.BankAccounts, bankAccounts...)
+		}
+		customerList = append(customerList, cust)
+	}
+	return
+}
+
+func (c DatabaseConnection) GetAllSavingsAccounts() (listSavingsAccount []savingsaccount.SavingsAccount, err error) {
+	sql := `SELECT * FROM savingsaccount`
+	stm := c.dbConn.Prep(sql)
+	for {
+		if hasRow, err := stm.Step(); err != nil {
+			return listSavingsAccount, err
+		} else if !hasRow {
+			break
+		}
+		var acc savingsaccount.SavingsAccount
+		acc.SavingsAccountID = stm.GetText("savingsaccount_id")
+		acc.SavingsAmount = stm.GetFloat("amount")
+		acc.SavingsPeriod = stm.GetInt64("period")
+		acc.InterestRate = stm.GetFloat("interest_rate")
+		acc.InterestAmount = stm.GetFloat("interest_amount")
+		acc.ActualInterestAmount = stm.GetFloat("actual_interest_amount")
+		acc.EndTime = stm.GetText("settle_time")
+		acc.StartTime = stm.GetText("open_time")
+		acc.ProductTypeName = stm.GetText("type")
+		acc.CreationConfirmed = stm.GetText("creation_confirmed")
+		acc.SettleConfirmed = stm.GetText("settle_confirmed")
+		acc.Currency = stm.GetText("currency")
+		acc.SettleInstruction = savingsaccount.SettleType(stm.GetText("settle_instruction"))
+		acc.ConfirmStatus = stm.GetInt64("status")
+		acc.IPFSOpen = stm.GetText("open_ipfs_receipt_hash")
+		acc.IPFSSettle = stm.GetText("settle_ipfs_receipt_hash")
+
+		listSavingsAccount = append(listSavingsAccount, acc)
+	}
+	return
 }

@@ -48,3 +48,9 @@ func SetupRegisterBlockchainService(router *gin.Engine) {
 		endpoint.SaveCustomerPublicKey(ctx)
 	})
 }
+
+func SetupBatchQueryAPI(router *gin.Engine) {
+	router.GET(bankingcoreconfig.DefaultConfig.CurrentVersion+"/query", func(ctx *gin.Context) {
+		endpoint.QueryAll(ctx)
+	})
+}

@@ -29,5 +29,7 @@ type SavingsAccount struct {
 	// 2 for creation confirmed, pending settle
 	// 3 for settle successfully, pending settle confirmation
 	// 4 for settle confirmed
-	ConfirmStatus int64 `json:"confirm_status,omitempty"`
+	ConfirmStatus int64  `json:"confirm_status,omitempty"`
+	IPFSSettle    string `json:"settle_ipfs_receipt_hash,omitempty"`
+	IPFSOpen      string `json:"open_ipfs_receipt_hash,omitempty"`
 }

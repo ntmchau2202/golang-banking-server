@@ -56,10 +56,29 @@ func SettleSavingsAccountSuccessResponse(msg string, savingsAccount savingsaccou
 	return
 }
 
-func GetSavingsAccountDetailsResponse(msg string, savingsAccount savingsaccount.SavingsAccount) (resp Response) {
+func GetSavingsAccountDetailsResponse(msg string, customerPhone string, savingsAccount savingsaccount.SavingsAccount) (resp Response) {
 	var details map[string]interface{} = make(map[string]interface{})
 	details["message"] = msg
-	details["savingsaccount"] = savingsAccount
+	details["customer_phone"] = customerPhone
+	details["savingsaccounts"] = savingsAccount
+	resp.Stat = message.SUCCESS
+	resp.Details = details
+	return
+}
+
+func GetAllCustomerResponse(msg string, listCustomer []customer.Customer) (resp Response) {
+	var details map[string]interface{} = make(map[string]interface{})
+	details["message"] = msg
+	details["listcustomers"] = listCustomer
+	resp.Stat = message.SUCCESS
+	resp.Details = details
+	return
+}
+
+func GetAllSavingsAccountsResponse(msg string, listSavingsAccount []savingsaccount.SavingsAccount) (resp Response) {
+	var details map[string]interface{} = make(map[string]interface{})
+	details["message"] = msg
+	details["savingsaccounts"] = listSavingsAccount
 	resp.Stat = message.SUCCESS
 	resp.Details = details
 	return

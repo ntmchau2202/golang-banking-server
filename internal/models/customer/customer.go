@@ -9,6 +9,7 @@ type Customer struct {
 	CustomerPhone     string                    `json:"customer_phone"`
 	CustomerPublicKey string                    `json:"public_key"`
 	BankAccounts      []bankaccount.BankAccount `json:"bank_accounts"`
+	ActiveStatus      bool                      `json:"active_status"`
 }
 
 var CustomerType []string

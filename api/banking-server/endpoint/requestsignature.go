@@ -45,5 +45,5 @@ func GetSavingsAccountInfo(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, response.GetSavingsAccountDetailsResponse("get savings account details successfully", savingsAccount))
+	ctx.JSON(http.StatusOK, response.GetSavingsAccountDetailsResponse("get savings account details successfully", customerPhone, savingsAccount))
 }
